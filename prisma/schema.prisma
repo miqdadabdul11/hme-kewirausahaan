@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ProductType {
+  READY_STOCK
+  PRE_ORDER
+}
+
+enum ProductStatus {
+  DRAFT
+  COMING_SOON
+  ACTIVE
+  SOLD_OUT
+  INACTIVE
+}
+
+enum OpenOrderStatus {
+  DRAFT
+  UPCOMING
+  OPEN
+  CLOSED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING_VERIFICATION
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentProofStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SyncStatus {
+  PENDING_SYNC
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  auditLogs    AuditLog[]
+}
+
+model Product {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  description     String
+  image           String?
+  category        String?
+  type            ProductType
+  price           Int
+  status          ProductStatus     @default(DRAFT)
+  targetMinimum   Int?
+  maximumQuantity Int?
+  stockQuantity   Int?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  variants        ProductVariant[]
+  openOrderProducts OpenOrderProduct[]
+  orderItems      OrderItem[]
+  inventoryLogs   InventoryLog[]
+}
+
+model ProductVariant {
+  id            String       @id @default(cuid())
+  productId     String
+  name          String
+  sku           String?
+  price         Int?
+  stockQuantity Int?
+  status        ProductStatus @default(ACTIVE)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model OpenOrder {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  startAt         DateTime
+  endAt           DateTime
+  status          OpenOrderStatus   @default(DRAFT)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  products        OpenOrderProduct[]
+  orders          Order[]
+}
+
+model OpenOrderProduct {
+  openOrderId     String
+  productId       String
+  targetMinimum   Int?
+  maximumQuantity Int?
+  openOrder       OpenOrder @relation(fields: [openOrderId], references: [id], onDelete: Cascade)
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([openOrderId, productId])
+}
+
+model Order {
+  id                 String          @id @default(cuid())
+  orderNumber        String          @unique
+  customerName       String
+  nim                String
+  studyProgram       String
+  whatsapp           String
+  email              String?
+  notes              String?
+  totalAmount        Int
+  paymentStatus      PaymentStatus   @default(UNPAID)
+  orderStatus        OrderStatus     @default(PENDING)
+  paymentMethod      String?
+  pickupMethod       String?
+  openOrderId        String?
+  idempotencyKey     String?         @unique
+  paymentDeadlineAt  DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  openOrder          OpenOrder?      @relation(fields: [openOrderId], references: [id])
+  items              OrderItem[]
+  payments           Payment[]
+  paymentProofs      PaymentProof[]
+  syncLogs           GoogleSheetSyncLog[]
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String?
+  productName  String
+  variantName  String?
+  quantity     Int
+  price        Int
+  subtotal     Int
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product? @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  method        String
+  amount        Int
+  status        PaymentStatus @default(UNPAID)
+  verifiedBy    String?
+  verifiedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model PaymentProof {
+  id          String             @id @default(cuid())
+  orderId     String
+  fileUrl     String
+  uploadedAt  DateTime           @default(now())
+  status      PaymentProofStatus @default(PENDING)
+  order       Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model InventoryLog {
+  id             String   @id @default(cuid())
+  productId      String?
+  variantId      String?
+  changeQuantity Int
+  reason         String
+  createdBy      String?
+  createdAt      DateTime @default(now())
+  product        Product? @relation(fields: [productId], references: [id])
+}
+
+model GoogleSheetSyncLog {
+  id            String     @id @default(cuid())
+  orderId       String?
+  syncStatus    SyncStatus @default(PENDING_SYNC)
+  attemptCount  Int        @default(0)
+  lastAttempt   DateTime?
+  errorMessage  String?
+  syncedAt      DateTime?
+  createdAt     DateTime   @default(now())
+  order         Order?     @relation(fields: [orderId], references: [id])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String
+  oldValue    String?
+  newValue    String?
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Setting {
+  key       String   @id
+  value     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
