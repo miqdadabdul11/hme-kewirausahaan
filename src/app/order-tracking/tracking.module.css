@@ -1,0 +1,76 @@
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.header p {
+  color: var(--gray-500);
+  margin-top: 8px;
+}
+.formCard {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.errorText {
+  color: #991B1B;
+  background: #FEE2E2;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 16px;
+}
+.resultSection {
+  margin-top: 48px;
+}
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 24px;
+}
+.infoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.infoLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+.infoValue {
+  font-weight: 600;
+  color: var(--black-900);
+  font-size: 1.05rem;
+}
+.timeline {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--gray-100);
+}
+.timelineTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

@@ -1,59 +1,12 @@
-.hero {
-  background-color: var(--black-900);
-  background-image: 
-    radial-gradient(circle at top right, rgba(108, 194, 74, 0.15), transparent 400px),
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 40px 40px, 40px 40px;
-  border-radius: 24px;
-  padding: 64px 32px;
-  text-align: center;
-  color: var(--white);
-  border: 1px solid var(--black-700);
-  margin-bottom: 48px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-.heroContent {
-  max-width: 600px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-.heroTitle {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  line-height: 1.1;
-  margin: 8px 0;
-  background: linear-gradient(to right, #fff, #a3a3a3);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.heroDesc {
-  font-size: 1.1rem;
-  color: var(--gray-100);
-  opacity: 0.8;
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-.heroActions {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.productSection {
-  margin-top: 48px;
-}
-.sectionHeader {
+.header {
+  margin-bottom: 32px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  align-items: flex-end;
 }
-.seeAll {
-  color: var(--green-500);
-  font-weight: 600;
+.header p {
+  color: var(--gray-500);
+  margin-top: 8px;
 }
 .grid {
   display: grid;
@@ -143,7 +96,9 @@
 }
 
 @media (max-width: 600px) {
-  .hero {
-    padding: 40px 20px;
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 }

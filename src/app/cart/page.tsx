@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import styles from "./cart.module.css";
 
 type CartItem = {
   productId: string;
@@ -12,10 +17,16 @@ type CartItem = {
 
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("hme-cart");
-    setItems(stored ? JSON.parse(stored) : []);
+    if (stored) {
+      try {
+        setItems(JSON.parse(stored));
+      } catch (e) {}
+    }
+    setIsLoaded(true);
   }, []);
 
   const total = useMemo(
@@ -42,59 +53,85 @@ export default function CartPage() {
     localStorage.setItem("hme-cart", JSON.stringify(next));
   };
 
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <main className="page-shell compact">
-      <header className="topbar">
-        <div className="brand-block">
-          <span className="brand-mark">HME</span>
-          <div>
-            <strong>Keranjang</strong>
-            <small>Checkout cepat</small>
-          </div>
+    <>
+      <Navbar cartCount={isLoaded ? totalItems : 0} />
+      <main className="page-shell compact">
+        <div className={styles.header}>
+          <h1 className="heading">Keranjang Belanja</h1>
+          <p>Selesaikan pesanan Anda sebelum sesi Open Order berakhir.</p>
         </div>
-        <nav className="main-nav">
-          <Link href="/">Home</Link>
-          <Link href="/products">Produk</Link>
-          <Link href="/order-tracking">Tracking</Link>
-        </nav>
-      </header>
 
-      <section className="two-col">
-        <div className="form-panel">
-          <h2>Daftar Produk</h2>
-          {items.length === 0 ? (
-            <div className="empty-state">Keranjang masih kosong.</div>
-          ) : (
-            items.map((item) => (
-              <div className="cart-item" key={item.productId}>
-                <div>
-                  <strong>{item.name}</strong>
-                  <div className="status-note">Rp {item.price.toLocaleString("id-ID")}</div>
+        <section className={styles.layout}>
+          <div className={styles.mainCol}>
+            <Card>
+              <h2 className={styles.cardTitle}>Daftar Produk</h2>
+              {!isLoaded ? (
+                <div className={styles.emptyState}>Loading...</div>
+              ) : items.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>Keranjang Anda masih kosong.</p>
+                  <Link href="/products">
+                    <Button variant="secondary" style={{ marginTop: '16px' }}>Lihat Produk</Button>
+                  </Link>
                 </div>
-                <div className="button-inline">
-                  <button className="button secondary small" onClick={() => updateQuantity(item.productId, -1)}>-</button>
-                  <span>{item.quantity}</span>
-                  <button className="button secondary small" onClick={() => updateQuantity(item.productId, 1)}>+</button>
+              ) : (
+                <div className={styles.itemList}>
+                  {items.map((item) => (
+                    <div className={styles.cartItem} key={item.productId}>
+                      <div className={styles.itemInfo}>
+                        <h3 className={styles.itemName}>{item.name}</h3>
+                        <span className={styles.itemPrice}>Rp {item.price.toLocaleString("id-ID")}</span>
+                      </div>
+                      
+                      <div className={styles.itemActions}>
+                        <div className={styles.stepper}>
+                          <button className={styles.stepBtn} onClick={() => updateQuantity(item.productId, -1)}>-</button>
+                          <span className={styles.qty}>{item.quantity}</span>
+                          <button className={styles.stepBtn} onClick={() => updateQuantity(item.productId, 1)}>+</button>
+                        </div>
+                        <Button variant="danger" size="sm" onClick={() => removeItem(item.productId)}>
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <button className="button danger small" onClick={() => removeItem(item.productId)}>Hapus</button>
+              )}
+            </Card>
+          </div>
+
+          <aside className={styles.sidebar}>
+            <Card className={styles.summaryCard}>
+              <h3 className={styles.cardTitle}>Ringkasan</h3>
+              <div className={styles.summaryRow}>
+                <span>Total Item</span>
+                <span>{totalItems}</span>
               </div>
-            ))
-          )}
-        </div>
-
-        <aside className="summary-box">
-          <h3>Ringkasan</h3>
-          <div className="status-note">Total item: {items.reduce((sum, item) => sum + item.quantity, 0)}</div>
-          <div className="price-row" style={{ marginTop: 12 }}>
-            <strong>Total</strong>
-            <strong>Rp {total.toLocaleString("id-ID")}</strong>
-          </div>
-          <div className="button-row">
-            <Link href="/checkout" className="button primary">Checkout</Link>
-            <Link href="/products" className="button secondary">Lanjut Belanja</Link>
-          </div>
-        </aside>
-      </section>
-    </main>
+              <div className={`${styles.summaryRow} ${styles.totalRow}`}>
+                <span>Total Pembayaran</span>
+                <span>Rp {total.toLocaleString("id-ID")}</span>
+              </div>
+              
+              <div className={styles.actions}>
+                <Link href={items.length > 0 ? "/checkout" : "#"}>
+                  <Button size="lg" disabled={items.length === 0} style={{ width: '100%' }}>
+                    Lanjut ke Checkout
+                  </Button>
+                </Link>
+                <Link href="/products">
+                  <Button variant="ghost" size="lg" style={{ width: '100%' }}>
+                    Lanjut Belanja
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </aside>
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }

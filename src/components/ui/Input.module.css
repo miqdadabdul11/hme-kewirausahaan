@@ -1,0 +1,30 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--black-900);
+}
+.input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-500);
+  background: var(--white);
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--green-500);
+}
+.errorInput {
+  border-color: #dc2626;
+}
+.errorText {
+  color: #dc2626;
+  font-size: 0.75rem;
+}

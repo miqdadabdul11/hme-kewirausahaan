@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import styles from "./login.module.css";
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("admin@hme.ac.id");
   const [password, setPassword] = useState("admin123");
   const [error, setError] = useState<string | null>(null);
@@ -13,42 +19,64 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const result = await response.json();
-    setLoading(false);
+      const result = await response.json();
+      setLoading(false);
 
-    if (!response.ok) {
-      setError(result.error || "Login gagal.");
-      return;
+      if (!response.ok) {
+        setError(result.error || "Login gagal.");
+        return;
+      }
+
+      router.push("/admin");
+    } catch (err) {
+      setLoading(false);
+      setError("Terjadi kesalahan jaringan.");
     }
-
-    window.location.href = "/admin";
   };
 
   return (
-    <main className="page-shell compact">
-      <div className="form-panel" style={{ maxWidth: 480, margin: "80px auto" }}>
-        <h2>Login Admin</h2>
-        <form onSubmit={submit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          {error && <div className="error-text">{error}</div>}
-          <button className="button primary" type="submit" disabled={loading}>
-            {loading ? "Masuk..." : "Login"}
-          </button>
+    <div className={styles.loginContainer}>
+      <div className={styles.loginCard}>
+        <div className={styles.header}>
+          <img src="/logo-hme.png" alt="HME Logo" className={styles.logo} />
+          <h1 className={`heading ${styles.title}`}>Portal Admin HME</h1>
+          <p className={styles.subtitle}>Sistem Manajemen Kewirausahaan</p>
+        </div>
+        
+        <form className={styles.form} onSubmit={submit}>
+          <Input 
+            label="Email" 
+            type="email"
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+          />
+          <Input 
+            label="Password" 
+            type="password"
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            required 
+          />
+          
+          {error && <div className={styles.errorBox}>{error}</div>}
+          
+          <Button type="submit" size="lg" isLoading={loading} style={{ width: '100%', marginTop: '8px' }}>
+            Masuk Dashboard
+          </Button>
         </form>
+
+        <Link href="/" className={styles.backLink}>
+          &larr; Kembali ke halaman utama
+        </Link>
       </div>
-    </main>
+    </div>
   );
 }

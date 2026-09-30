@@ -1,0 +1,11 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--gray-100);
+}
+
+.mainContent {
+  flex: 1;
+  overflow-x: hidden;
+  min-height: 100vh;
+}

@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import styles from "./checkout.module.css";
 
 type CartItem = {
   productId: string;
@@ -11,9 +18,12 @@ type CartItem = {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  
   const [form, setForm] = useState({
     customerName: "",
     nim: "",
@@ -25,8 +35,13 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem("hme-cart") || "[]";
-    setItems(JSON.parse(stored));
+    const stored = localStorage.getItem("hme-cart");
+    if (stored) {
+      try {
+        setItems(JSON.parse(stored));
+      } catch(e) {}
+    }
+    setIsLoaded(true);
   }, []);
 
   const total = useMemo(
@@ -45,113 +60,179 @@ export default function CheckoutPage() {
       idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     };
 
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const result = await response.json();
-    setLoading(false);
+      const result = await response.json();
+      setLoading(false);
 
-    if (!response.ok) {
-      setMessage(result.error || "Checkout gagal.");
-      return;
+      if (!response.ok) {
+        setMessage(result.error || "Checkout gagal.");
+        return;
+      }
+
+      localStorage.removeItem("hme-cart");
+      router.push(`/order-tracking?orderNumber=${encodeURIComponent(result.order.orderNumber)}`);
+    } catch (error) {
+      setLoading(false);
+      setMessage("Terjadi kesalahan sistem. Silakan coba lagi.");
     }
-
-    localStorage.removeItem("hme-cart");
-    window.location.href = `/order-tracking?orderNumber=${encodeURIComponent(result.order.orderNumber)}`;
   };
 
-  if (items.length === 0) {
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  if (isLoaded && items.length === 0) {
     return (
-      <main className="page-shell compact">
-        <div className="empty-state">Keranjang masih kosong. Silakan pilih produk terlebih dahulu.</div>
-      </main>
+      <>
+        <Navbar cartCount={0} />
+        <main className="page-shell compact">
+          <Card className={styles.emptyState}>
+            <h2 className="heading">Keranjang masih kosong</h2>
+            <p>Silakan pilih produk terlebih dahulu sebelum melanjutkan ke checkout.</p>
+            <Link href="/products">
+              <Button style={{ marginTop: '16px' }}>Lihat Katalog</Button>
+            </Link>
+          </Card>
+        </main>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <main className="page-shell compact">
-      <header className="topbar">
-        <div className="brand-block">
-          <span className="brand-mark">HME</span>
-          <div>
-            <strong>Checkout</strong>
-            <small>Form pemesanan</small>
-          </div>
-        </div>
-        <nav className="main-nav">
-          <Link href="/">Home</Link>
-          <Link href="/cart">Keranjang</Link>
-        </nav>
-      </header>
-
-      <form className="form-grid" onSubmit={submit}>
-        <div className="form-panel">
-          <h2>Data Pemesan</h2>
-          <div className="form-group">
-            <label>Nama Lengkap</label>
-            <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} required />
-          </div>
-          <div className="two-col">
-            <div className="form-group">
-              <label>NIM</label>
-              <input value={form.nim} onChange={(e) => setForm({ ...form, nim: e.target.value })} required />
-            </div>
-            <div className="form-group">
-              <label>Program Studi</label>
-              <input value={form.studyProgram} onChange={(e) => setForm({ ...form, studyProgram: e.target.value })} required />
-            </div>
-          </div>
-          <div className="two-col">
-            <div className="form-group">
-              <label>Nomor WhatsApp</label>
-              <input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} required />
-            </div>
-            <div className="form-group">
-              <label>Email (opsional)</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Catatan</label>
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          </div>
-          <div className="form-group">
-            <label>Metode Pembayaran</label>
-            <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}>
-              <option value="Transfer">Transfer</option>
-              <option value="QRIS">QRIS</option>
-              <option value="Cash">Cash</option>
-            </select>
-          </div>
-          {message && <div className="error-text">{message}</div>}
+    <>
+      <Navbar cartCount={isLoaded ? totalItems : 0} />
+      <main className="page-shell compact">
+        <div className={styles.header}>
+          <h1 className="heading">Checkout Pesanan</h1>
+          <p>Lengkapi data diri Anda untuk menyelesaikan pemesanan.</p>
         </div>
 
-        <aside className="summary-box">
-          <h3>Ringkasan Pesanan</h3>
-          {items.map((item) => (
-            <div key={item.productId} className="cart-item">
-              <div>
-                <strong>{item.name}</strong>
-                <div className="status-note">Qty: {item.quantity}</div>
+        <form className={styles.layout} onSubmit={submit}>
+          <div className={styles.mainCol}>
+            <Card>
+              <h2 className={styles.cardTitle}>Data Pemesan</h2>
+              <div className={styles.formGrid}>
+                <Input 
+                  label="Nama Lengkap" 
+                  value={form.customerName} 
+                  onChange={handleInputChange('customerName')} 
+                  required 
+                  placeholder="Masukkan nama lengkap Anda"
+                />
+                
+                <div className={styles.twoCol}>
+                  <Input 
+                    label="NIM" 
+                    value={form.nim} 
+                    onChange={handleInputChange('nim')} 
+                    required 
+                    placeholder="Contoh: 13220000"
+                  />
+                  <Input 
+                    label="Program Studi" 
+                    value={form.studyProgram} 
+                    onChange={handleInputChange('studyProgram')} 
+                    required 
+                    placeholder="Teknik Elektro"
+                  />
+                </div>
+                
+                <div className={styles.twoCol}>
+                  <Input 
+                    label="Nomor WhatsApp" 
+                    type="tel"
+                    value={form.whatsapp} 
+                    onChange={handleInputChange('whatsapp')} 
+                    required 
+                    placeholder="08123456789"
+                  />
+                  <Input 
+                    label="Email (opsional)" 
+                    type="email"
+                    value={form.email} 
+                    onChange={handleInputChange('email')} 
+                    placeholder="email@example.com"
+                  />
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Catatan Tambahan (Opsional)</label>
+                  <textarea 
+                    className={styles.textarea}
+                    value={form.notes} 
+                    onChange={handleInputChange('notes')} 
+                    placeholder="Ukuran, warna khusus, atau instruksi lain"
+                  />
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Metode Pembayaran</label>
+                  <select 
+                    className={styles.select}
+                    value={form.paymentMethod} 
+                    onChange={handleInputChange('paymentMethod')}
+                  >
+                    <option value="Transfer">Transfer Bank</option>
+                    <option value="QRIS">QRIS</option>
+                    <option value="Cash">Cash (Bayar Langsung)</option>
+                  </select>
+                </div>
               </div>
-              <div>Rp {(item.price * item.quantity).toLocaleString("id-ID")}</div>
-            </div>
-          ))}
-          <div className="price-row" style={{ marginTop: 16 }}>
-            <strong>Total</strong>
-            <strong>Rp {total.toLocaleString("id-ID")}</strong>
+              
+              {message && <div className={styles.errorMessage}>{message}</div>}
+            </Card>
           </div>
-          <div className="button-row">
-            <button type="submit" className="button primary" disabled={loading}>
-              {loading ? "Memproses..." : "Buat Pesanan"}
-            </button>
-            <Link href="/cart" className="button secondary">Kembali</Link>
-          </div>
-        </aside>
-      </form>
-    </main>
+
+          <aside className={styles.sidebar}>
+            <Card className={styles.summaryCard}>
+              <h3 className={styles.cardTitle}>Ringkasan Pesanan</h3>
+              
+              <div className={styles.itemList}>
+                {items.map((item) => (
+                  <div key={item.productId} className={styles.cartItem}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemName}>{item.name}</span>
+                      <span className={styles.itemQty}>Qty: {item.quantity}</span>
+                    </div>
+                    <span className={styles.itemPrice}>Rp {(item.price * item.quantity).toLocaleString("id-ID")}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <div className={`${styles.summaryRow} ${styles.totalRow}`}>
+                <span>Total Pembayaran</span>
+                <span>Rp {total.toLocaleString("id-ID")}</span>
+              </div>
+              
+              <div className={styles.actions}>
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  isLoading={loading}
+                  style={{ width: '100%' }}
+                >
+                  Konfirmasi Pesanan
+                </Button>
+                <Link href="/cart" style={{ width: '100%' }}>
+                  <Button variant="ghost" size="lg" style={{ width: '100%' }} disabled={loading}>
+                    Kembali ke Keranjang
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </aside>
+        </form>
+      </main>
+      <Footer />
+    </>
   );
 }

@@ -1,0 +1,122 @@
+.header {
+  margin-bottom: 32px;
+}
+.header p {
+  color: var(--gray-500);
+  margin-top: 8px;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+.cardTitle {
+  font-family: var(--font-space);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  border-bottom: 1px solid var(--gray-100);
+  padding-bottom: 12px;
+}
+.emptyState {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--gray-500);
+}
+.itemList {
+  display: flex;
+  flex-direction: column;
+}
+.cartItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.cartItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.itemName {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.itemPrice {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--gray-100);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.stepBtn {
+  background: var(--gray-100);
+  border: none;
+  padding: 8px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--black-900);
+}
+.stepBtn:hover {
+  background: #e5e7eb;
+}
+.qty {
+  width: 40px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.summaryCard {
+  position: sticky;
+  top: 100px;
+}
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--gray-500);
+}
+.totalRow {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--gray-100);
+  color: var(--black-900);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .cartItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .itemActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

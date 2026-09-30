@@ -1,0 +1,136 @@
+.header {
+  margin-bottom: 32px;
+}
+.header p {
+  color: var(--gray-500);
+  margin-top: 8px;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+}
+.cardTitle {
+  font-family: var(--font-space);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  border-bottom: 1px solid var(--gray-100);
+  padding-bottom: 12px;
+}
+.formGrid {
+  display: flex;
+  flex-direction: column;
+}
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--black-900);
+}
+.textarea {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-500);
+  background: var(--white);
+  font-family: inherit;
+  min-height: 100px;
+  resize: vertical;
+}
+.textarea:focus, .select:focus {
+  outline: none;
+  border-color: var(--green-500);
+}
+.select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-500);
+  background: var(--white);
+  font-family: inherit;
+}
+.errorMessage {
+  margin-top: 16px;
+  padding: 12px;
+  background: #FEE2E2;
+  color: #991B1B;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.summaryCard {
+  position: sticky;
+  top: 100px;
+}
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.cartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+}
+.itemName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.itemQty {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+.itemPrice {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+}
+.totalRow {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--gray-100);
+  color: var(--black-900);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+.emptyState {
+  padding: 60px 20px;
+  text-align: center;
+}
+.emptyState p {
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
