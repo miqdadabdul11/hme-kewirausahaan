@@ -73,6 +73,39 @@
   background: #f9fafb;
 }
 
+.orderItemsTableWrapper {
+  overflow-x: auto;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.orderItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.orderItemsTable th,
+.orderItemsTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  text-align: left;
+}
+
+.orderItemsTable th {
+  background: var(--gray-100);
+  color: var(--gray-500);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.orderItemsTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 /* Badge */
 .badge {
   display: inline-block;

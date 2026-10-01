@@ -59,6 +59,12 @@ Jika belum ada migration local, jalankan:
 npx prisma db push
 ```
 
+Untuk menerapkan migration yang sudah ada ke database deployment (termasuk kolom relasi varian di `OrderItem`), jalankan:
+
+```bash
+npx prisma migrate deploy
+```
+
 ## Seed data
 
 ```bash

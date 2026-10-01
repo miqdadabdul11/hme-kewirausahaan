@@ -17,7 +17,7 @@ export const Navbar = ({ cartCount }: { cartCount?: number }) => {
         <Link href="/" className={styles.brand}>
           <Image src="/logo-hme-mark.png" alt="HME FPTI UPI" width={48} height={50} className={styles.logo} />
           <div className={styles.brandText}>
-            <span className={styles.title}>Sub Kewirausahaan</span>
+            <span className={styles.title}>E-STORE</span>
             <span className={styles.subtitle}>HME FPTI UPI</span>
           </div>
         </Link>

@@ -93,9 +93,7 @@ export default async function AdminDashboardPage() {
                     <td className={styles.mono}>{order.orderNumber}</td>
                     <td>{order.customerName}</td>
                     <td className={styles.productCell}>
-                      {order.items.map(i =>
-                        `${i.productName}${i.variantName ? ` · ${i.variantName}` : ""} (${i.quantity}x)`,
-                      ).join(", ")}
+                      {[...new Set(order.items.map((item) => item.productName))].join(", ")}
                     </td>
                     <td className={styles.mono}>{formatCurrency(Number(order.totalAmount))}</td>
                     <td>

@@ -49,7 +49,7 @@ export default async function HomePage() {
             <p className={styles.heroDesc}>
               {storeStatus === "OPEN"
                 ? "Produk merchandise resmi HME FPTI UPI telah tersedia. Pesan sekarang sebelum kehabisan!"
-                : "Pantau terus website Sub Kewirausahaan HME FPTI UPI untuk informasi Open Order berikutnya."}
+                : "Pantau terus E-STORE HME FPTI UPI untuk informasi Open Order berikutnya."}
             </p>
             <div className={styles.heroActions}>
               <Link href="/products">

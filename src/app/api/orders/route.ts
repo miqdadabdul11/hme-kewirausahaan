@@ -171,6 +171,7 @@ export async function POST(request: Request) {
         const unitPrice = variant?.price ?? product.price;
         return {
           productId: product.id,
+          variantId: variant?.id ?? null,
           productName: product.name,
           variantName: variant?.name ?? null,
           quantity: line.quantity,

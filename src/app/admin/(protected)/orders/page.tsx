@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import styles from "../../admin-shared.module.css";
 
-type OrderItem = { productName: string; variantName: string | null; quantity: number; price: number; subtotal: number };
+type OrderItem = { productName: string; variantId: string | null; variantName: string | null; quantity: number; price: number; subtotal: number };
 type Order = {
   id: string;
   orderNumber: string;
@@ -142,10 +142,11 @@ export default function AdminOrdersPage() {
                   <td className={styles.mono}>{order.orderNumber}</td>
                   <td>{order.customerName}</td>
                   <td className={styles.mono}>{order.nim}</td>
-                  <td className={styles.truncate}>
-                    {order.items.map(i =>
-                      `${i.productName}${i.variantName ? ` · ${i.variantName}` : ""} (${i.quantity}x)`,
-                    ).join(", ")}
+                  <td>
+                    <div>{[...new Set(order.items.map((item) => item.productName))].join(", ")}</div>
+                    <small style={{ color: "var(--gray-500)" }}>
+                      {order.items.length} baris pesanan
+                    </small>
                   </td>
                   <td className={styles.mono}>Rp {Number(order.totalAmount).toLocaleString("id-ID")}</td>
                   <td>
@@ -199,20 +200,31 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              {/* Items */}
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Produk Dipesan</label>
-                <div style={{ background: "var(--gray-100)", borderRadius: 8, padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
-                  {selected.items.map((item, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
-                      <span>
-                        {item.productName}
-                        {item.variantName && <strong style={{ display: "block", color: "var(--gray-500)", fontWeight: 600 }}>{item.variantName}</strong>}
-                        × {item.quantity}
-                      </span>
-                      <span style={{ fontFamily: "monospace" }}>Rp {Number(item.subtotal).toLocaleString("id-ID")}</span>
-                    </div>
-                  ))}
+                <label className={styles.formLabel}>Rincian Barang</label>
+                <div className={styles.orderItemsTableWrapper}>
+                  <table className={styles.orderItemsTable}>
+                    <thead>
+                      <tr>
+                        <th>Produk</th>
+                        <th>Ukuran / Varian</th>
+                        <th>Jumlah</th>
+                        <th>Harga</th>
+                        <th>Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selected.items.map((item, index) => (
+                        <tr key={`${item.productName}-${item.variantName ?? "default"}-${index}`}>
+                          <td>{item.productName}</td>
+                          <td>{item.variantName ?? "—"}</td>
+                          <td>{item.quantity}</td>
+                          <td>Rp {Number(item.price).toLocaleString("id-ID")}</td>
+                          <td>Rp {Number(item.subtotal).toLocaleString("id-ID")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
