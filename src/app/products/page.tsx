@@ -63,8 +63,12 @@ export default async function ProductsPage() {
                 <Card key={product.id} className={styles.productCard}>
                   <div 
                     className={styles.productImage} 
-                    style={{ backgroundImage: `url(${product.image ?? "/product-placeholder.svg"})` }}
                   >
+                    <img
+                      className={styles.productImageContent}
+                      src={product.image ?? "/product-placeholder.svg"}
+                      alt={product.image ? product.name : "HME FPTI UPI - Foto produk segera hadir"}
+                    />
                     {isSoldOut && <span className={styles.soldOutBadge}>SOLD OUT</span>}
                     {isComingSoon && <span className={styles.comingSoonBadge}>SEGERA HADIR</span>}
                   </div>

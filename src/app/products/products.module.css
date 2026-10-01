@@ -28,10 +28,16 @@
   width: 100%;
   aspect-ratio: 4/5;
   border-radius: 12px;
-  background-size: cover;
-  background-position: center;
   position: relative;
   background-color: var(--gray-100);
+  overflow: hidden;
+}
+.productImageContent {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .soldOutBadge {
   position: absolute;

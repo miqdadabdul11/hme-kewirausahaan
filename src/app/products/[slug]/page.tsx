@@ -52,8 +52,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <section className={styles.layout}>
           <div 
             className={styles.imageContainer} 
-            style={{ backgroundImage: `url(${product.image ?? "/product-placeholder.svg"})` }}
           >
+            <img
+              className={styles.productImageContent}
+              src={product.image ?? "/product-placeholder.svg"}
+              alt={product.image ? product.name : "HME FPTI UPI - Foto produk segera hadir"}
+            />
             {isSoldOut && <div className={styles.soldOutBadge}>SOLD OUT</div>}
           </div>
 

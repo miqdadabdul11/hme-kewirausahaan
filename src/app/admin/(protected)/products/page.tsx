@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import styles from "../../admin-shared.module.css";
 
 type Product = {
@@ -41,6 +41,9 @@ type OpenOrder = { id: string; name: string; status: string };
 
 const PRODUCT_STATUSES = ["DRAFT", "COMING_SOON", "ACTIVE", "SOLD_OUT", "INACTIVE"];
 const PRODUCT_TYPES = ["READY_STOCK", "PRE_ORDER"];
+const MAX_ORIGINAL_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_COMPRESSED_IMAGE_BYTES = 3.5 * 1024 * 1024;
+const MAX_IMAGE_SIDE = 1600;
 
 const STATUS_COLOR: Record<string, string> = {
   ACTIVE: "#10b981", DRAFT: "#f59e0b", COMING_SOON: "#3b82f6",
@@ -69,6 +72,13 @@ export default function AdminProductsPage() {
   const [variants, setVariants] = useState<VariantForm[]>([newVariant()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState("");
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const pendingImageUrls = useRef(new Set<string>());
 
   const fetchAll = useCallback(async () => {
     const [pRes, ooRes] = await Promise.all([
@@ -89,6 +99,8 @@ export default function AdminProductsPage() {
     setForm(emptyForm);
     setVariants([newVariant()]);
     setError(null);
+    setNotice(null);
+    setImageFileName("");
     setShowForm(true);
   };
 
@@ -116,6 +128,8 @@ export default function AdminProductsPage() {
           stockQuantity: String(p.stockQuantity ?? 0),
         }]);
     setError(null);
+    setNotice(null);
+    setImageFileName("");
     setShowForm(true);
   };
 
@@ -127,6 +141,159 @@ export default function AdminProductsPage() {
     setVariants((current) => current.map((variant, variantIndex) =>
       variantIndex === index ? { ...variant, [field]: value } : variant,
     ));
+  };
+
+  const deleteUploadedImage = async (imageUrl: string) => {
+    const response = await fetch("/api/admin/product-image", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error ?? "Foto sementara gagal dihapus.");
+    }
+    pendingImageUrls.current.delete(imageUrl);
+  };
+
+  const compressImage = async (file: File) => {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context) {
+      bitmap.close();
+      throw new Error("Foto tidak dapat diproses oleh browser ini.");
+    }
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+
+    const encode = (type: string, quality: number) => new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Foto tidak dapat dikompres. Coba pilih foto lain."));
+      }, type, quality);
+    });
+
+    let blob = await encode("image/webp", 0.82);
+    if (blob.type !== "image/webp") {
+      blob = await encode("image/jpeg", 0.82);
+    }
+    for (const quality of [0.72, 0.62, 0.52]) {
+      if (blob.size <= MAX_COMPRESSED_IMAGE_BYTES) break;
+      blob = await encode(blob.type, quality);
+    }
+    if (blob.size > MAX_COMPRESSED_IMAGE_BYTES) {
+      throw new Error("Foto masih terlalu besar setelah dikompres. Pilih foto yang lebih kecil.");
+    }
+    return blob;
+  };
+
+  const uploadProductImage = (blob: Blob, originalName: string) => new Promise<string>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    const data = new FormData();
+    data.append("file", blob, originalName.replace(/\.[^.]+$/, "") + (blob.type === "image/webp" ? ".webp" : ".jpg"));
+    if (editing) data.append("productId", editing.id);
+
+    request.open("POST", "/api/admin/product-image");
+    request.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable) {
+        setUploadProgress(Math.min(99, 5 + Math.round((event.loaded / event.total) * 90)));
+      }
+    });
+    request.addEventListener("load", () => {
+      let response: { imageUrl?: string; error?: string };
+      try {
+        response = JSON.parse(request.responseText) as { imageUrl?: string; error?: string };
+      } catch {
+        reject(new Error("Server memberikan respons upload yang tidak valid."));
+        return;
+      }
+      if (request.status < 200 || request.status >= 300 || !response.imageUrl) {
+        reject(new Error(response.error ?? "Foto gagal diunggah."));
+        return;
+      }
+      resolve(response.imageUrl);
+    });
+    request.addEventListener("error", () => reject(new Error("Koneksi terputus saat mengunggah foto. Coba lagi.")));
+    request.addEventListener("abort", () => reject(new Error("Unggahan foto dibatalkan.")));
+    request.send(data);
+  });
+
+  const handleImageSelected = async (file?: File) => {
+    if (!file) return;
+    setError(null);
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Format foto harus JPG, PNG, atau WebP.");
+      return;
+    }
+    if (file.size > MAX_ORIGINAL_IMAGE_BYTES) {
+      setError("Ukuran foto maksimal 5 MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    setUploadProgress(0);
+    setUploadStage("Mengompres foto…");
+    try {
+      const compressed = await compressImage(file);
+      setUploadStage("Mengunggah foto…");
+      const uploadedUrl = await uploadProductImage(compressed, file.name);
+      pendingImageUrls.current.add(uploadedUrl);
+
+      const previousImage = form.image;
+      if (previousImage && pendingImageUrls.current.has(previousImage) && previousImage !== uploadedUrl) {
+        try {
+          await deleteUploadedImage(previousImage);
+        } catch (cleanupError) {
+          setError(cleanupError instanceof Error
+            ? `Foto baru sudah diunggah, tetapi foto sementara sebelumnya gagal dihapus: ${cleanupError.message}`
+            : "Foto sementara sebelumnya gagal dihapus dari penyimpanan.");
+        }
+      }
+      setForm((current) => ({ ...current, image: uploadedUrl }));
+      setImageFileName(file.name);
+      setUploadProgress(100);
+      setUploadStage("");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error
+        ? uploadError.message
+        : "Foto gagal diproses atau diunggah. Coba lagi.");
+      setUploadStage("");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeProductImage = async () => {
+    if (uploadingImage) return;
+    setError(null);
+    if (form.image && pendingImageUrls.current.has(form.image)) {
+      try {
+        await deleteUploadedImage(form.image);
+      } catch (cleanupError) {
+        setError(cleanupError instanceof Error ? cleanupError.message : "Foto gagal dihapus dari penyimpanan.");
+        return;
+      }
+    }
+    setForm((current) => ({ ...current, image: "" }));
+    setImageFileName("");
+  };
+
+  const closeForm = async () => {
+    if (saving || uploadingImage) return;
+    try {
+      for (const imageUrl of pendingImageUrls.current) {
+        await deleteUploadedImage(imageUrl);
+      }
+      setShowForm(false);
+    } catch (cleanupError) {
+      setError(cleanupError instanceof Error
+        ? `Foto unggahan yang belum disimpan gagal dibersihkan: ${cleanupError.message}`
+        : "Foto unggahan yang belum disimpan gagal dibersihkan.");
+    }
   };
 
   const save = async () => {
@@ -161,6 +328,19 @@ export default function AdminProductsPage() {
         setError(data.error ?? "Gagal menyimpan.");
         return;
       }
+      const savedImageUrl = typeof data.product?.image === "string" ? data.product.image : null;
+      if (savedImageUrl) pendingImageUrls.current.delete(savedImageUrl);
+      let saveNotice = typeof data.warning === "string" ? data.warning : null;
+      for (const imageUrl of [...pendingImageUrls.current]) {
+        try {
+          await deleteUploadedImage(imageUrl);
+        } catch (cleanupError) {
+          saveNotice = cleanupError instanceof Error
+            ? `Produk tersimpan, tetapi foto unggahan sementara gagal dibersihkan: ${cleanupError.message}`
+            : "Produk tersimpan, tetapi foto unggahan sementara gagal dibersihkan.";
+        }
+      }
+      setNotice(saveNotice);
       setShowForm(false);
       await fetchAll();
     } catch {
@@ -179,12 +359,14 @@ export default function AdminProductsPage() {
         </div>
         <button className={styles.btnAdd} onClick={openNew}>+ Tambah Produk</button>
       </div>
+      {notice && <div className={styles.errorBox} role="status">{notice}</div>}
 
       <div className={styles.tableCard}>
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
+                <th>Foto</th>
                 <th>Nama Produk</th>
                 <th>Tipe</th>
                 <th>Harga</th>
@@ -196,10 +378,17 @@ export default function AdminProductsPage() {
             </thead>
             <tbody>
               {products.length === 0 && (
-                <tr className={styles.emptyRow}><td colSpan={7}>Belum ada produk</td></tr>
+                <tr className={styles.emptyRow}><td colSpan={8}>Belum ada produk</td></tr>
               )}
               {products.map(p => (
                 <tr key={p.id}>
+                  <td>
+                    <img
+                      className={styles.productImageThumb}
+                      src={p.image ?? "/product-placeholder.svg"}
+                      alt={p.image ? p.name : "HME FPTI UPI - Foto produk segera hadir"}
+                    />
+                  </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{p.name}</div>
                     <div style={{ fontSize: "0.75rem", color: "var(--gray-500)" }}>{p.slug}</div>
@@ -234,7 +423,7 @@ export default function AdminProductsPage() {
       </div>
 
       {showForm && (
-        <div className={styles.overlay} onClick={() => setShowForm(false)}>
+        <div className={styles.overlay} onClick={closeForm}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <h2 className={styles.modalTitle}>{editing ? "Edit Produk" : "Tambah Produk Baru"}</h2>
             <div className={styles.formGrid}>
@@ -363,8 +552,74 @@ export default function AdminProductsPage() {
                 ))}
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>URL Gambar (opsional)</label>
-                <input className={styles.formInput} value={form.image} onChange={handleChange("image")} placeholder="https://..." />
+                <label className={styles.formLabel}>Foto Produk (opsional)</label>
+                <input
+                  ref={imageInputRef}
+                  className={styles.imageFileInput}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  aria-label="Pilih foto produk"
+                  disabled={uploadingImage || saving}
+                  onChange={(event) => {
+                    void handleImageSelected(event.currentTarget.files?.[0]);
+                    event.currentTarget.value = "";
+                  }}
+                />
+                {form.image ? (
+                  <div
+                    className={styles.imagePreviewCard}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      void handleImageSelected(event.dataTransfer.files[0]);
+                    }}
+                  >
+                    <img className={styles.imagePreview} src={form.image} alt={`Pratinjau ${form.name || "foto produk"}`} />
+                    <div className={styles.imagePreviewDetails}>
+                      <span className={styles.imageFileName}>{imageFileName || "Foto tersimpan"}</span>
+                      <div className={styles.imageActions}>
+                        <button
+                          type="button"
+                          className={styles.btnSecondary}
+                          disabled={uploadingImage || saving}
+                          onClick={() => imageInputRef.current?.click()}
+                        >
+                          Ganti
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.btnDanger}
+                          disabled={uploadingImage || saving}
+                          onClick={removeProductImage}
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.imageDropzone}
+                    disabled={uploadingImage || saving}
+                    onClick={() => imageInputRef.current?.click()}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      void handleImageSelected(event.dataTransfer.files[0]);
+                    }}
+                  >
+                    <span className={styles.imageDropzoneIcon} aria-hidden="true">＋</span>
+                    <span>Pilih foto</span>
+                    <span className={styles.imageHint}>JPG, PNG, atau WebP · Maks. 5 MB</span>
+                  </button>
+                )}
+                {uploadingImage && (
+                  <div className={styles.imageProgress} role="status" aria-live="polite">
+                    <span>{uploadStage} {uploadProgress > 0 ? `${uploadProgress}%` : ""}</span>
+                    <progress max="100" value={uploadProgress} />
+                  </div>
+                )}
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Hubungkan ke Open Order</label>
@@ -373,13 +628,13 @@ export default function AdminProductsPage() {
                   {openOrders.map(oo => <option key={oo.id} value={oo.id}>{oo.name} ({oo.status})</option>)}
                 </select>
               </div>
-              {error && <div className={styles.errorBox}>{error}</div>}
+              {error && <div className={styles.errorBox} role="alert">{error}</div>}
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.btnPrimary} onClick={save} disabled={saving}>
-                {saving ? "Menyimpan…" : "Simpan Produk"}
+              <button className={styles.btnPrimary} onClick={save} disabled={saving || uploadingImage}>
+                {uploadingImage ? "Mengunggah foto…" : saving ? "Menyimpan…" : "Simpan Produk"}
               </button>
-              <button className={styles.btnSecondary} onClick={() => setShowForm(false)}>Batal</button>
+              <button className={styles.btnSecondary} onClick={closeForm} disabled={saving || uploadingImage}>Batal</button>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma, ProductStatus, ProductType } from "@prisma/client";
 import { getAdminFromSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { deleteProductImage } from "@/lib/product-image-storage";
 
 class ProductSaveError extends Error {}
 
@@ -117,6 +118,9 @@ export async function POST(request: Request) {
   const productId = typeof body.id === "string" ? body.id : null;
 
   try {
+    const previousProduct = productId
+      ? await prisma.product.findUnique({ where: { id: productId }, select: { image: true } })
+      : null;
     const savedProductId = await prisma.$transaction(async (transaction) => {
       const product = productId
         ? await transaction.product.upsert({
@@ -189,9 +193,24 @@ export async function POST(request: Request) {
       include: { variants: true, openOrderProducts: true },
     });
 
+    let warning: string | undefined;
+    if (previousProduct?.image && previousProduct.image !== productData.image) {
+      try {
+        await deleteProductImage(previousProduct.image);
+      } catch (cleanupError) {
+        const requestId = crypto.randomUUID();
+        console.error("Product saved but the previous image could not be removed.", {
+          requestId,
+          name: cleanupError instanceof Error ? cleanupError.name : typeof cleanupError,
+        });
+        warning = `Produk tersimpan, tetapi foto lama gagal dihapus dari penyimpanan. Kode: ${requestId}.`;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       product: { ...savedProduct, openOrderId: body.openOrderId ? String(body.openOrderId) : null },
+      ...(warning ? { warning } : {}),
     });
   } catch (error) {
     const requestId = crypto.randomUUID();
