@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ProductStatus, ProductType } from "@prisma/client";
+import { Prisma, ProductStatus, ProductType } from "@prisma/client";
 import { getAdminFromSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
@@ -60,6 +60,7 @@ export async function POST(request: Request) {
     price: number | null;
     stockQuantity: number | null;
   }> = [];
+  const seenSkus = new Set<string>();
   for (const [index, input] of variants.entries()) {
     if (!input || typeof input !== "object") {
       return NextResponse.json({ error: `Data varian ke-${index + 1} tidak valid.` }, { status: 400 });
@@ -76,10 +77,20 @@ export async function POST(request: Request) {
     normalizedVariants.push({
       id: typeof variant.id === "string" ? variant.id : null,
       name: variantName,
-      sku: typeof variant.sku === "string" && variant.sku.trim() ? variant.sku.trim() : null,
+      sku: typeof variant.sku === "string" && variant.sku.trim() && variant.sku.trim() !== "-"
+        ? variant.sku.trim()
+        : null,
       price: variantPrice,
       stockQuantity,
     });
+    const sku = normalizedVariants.at(-1)?.sku;
+    if (sku) {
+      const normalizedSku = sku.toLocaleLowerCase();
+      if (seenSkus.has(normalizedSku)) {
+        return NextResponse.json({ error: `SKU "${sku}" dipakai lebih dari sekali.` }, { status: 400 });
+      }
+      seenSkus.add(normalizedSku);
+    }
   }
 
   const slug = typeof body.slug === "string" && body.slug.trim()
@@ -169,7 +180,29 @@ export async function POST(request: Request) {
       product: { ...product, openOrderId: openOrderProducts[0]?.openOrderId ?? null },
     });
   } catch (error) {
-    console.error("Failed to save product and variants.", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      const target = Array.isArray(error.meta?.target)
+        ? error.meta.target.map(String).join(",").toLowerCase()
+        : String(error.meta?.target ?? "").toLowerCase();
+      console.error("Failed to save product and variants.", { code: error.code, target });
+
+      if (error.code === "P2002") {
+        const message = target.includes("sku")
+          ? "SKU sudah digunakan produk lain. Kosongkan SKU atau gunakan kode unik."
+          : target.includes("slug")
+            ? "Nama/slug produk sudah digunakan. Ubah nama produk lalu coba lagi."
+            : "Ada data unik yang sudah digunakan. Periksa SKU tiap varian.";
+        return NextResponse.json({ error: message }, { status: 409 });
+      }
+      if (error.code === "P2003") {
+        return NextResponse.json({ error: "Open Order yang dipilih tidak valid. Muat ulang daftar lalu coba lagi." }, { status: 400 });
+      }
+      if (error.code === "P2025") {
+        return NextResponse.json({ error: "Data produk atau varian berubah. Muat ulang halaman lalu simpan kembali." }, { status: 409 });
+      }
+    } else {
+      console.error("Failed to save product and variants.");
+    }
     return NextResponse.json({ error: "Produk atau varian tidak dapat disimpan." }, { status: 400 });
   }
 }
