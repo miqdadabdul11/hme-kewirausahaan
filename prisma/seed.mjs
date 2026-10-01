@@ -1,19 +1,24 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const fallbackPasswordHash = "$2b$12$mLWexroKRl27.Xptm6.9HepiTCk3vGKz12OgEG4xJPquhwkBxH.3q";
 
 async function main() {
   const now = new Date();
   const endAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const adminEmail = (process.env.ADMIN_EMAIL || "admin@hme.ac.id").trim().toLowerCase();
-  const passwordHash = process.env.ADMIN_PASSWORD_HASH || fallbackPasswordHash;
+  const passwordHash = process.env.ADMIN_PASSWORD_HASH?.trim();
 
-  await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: { name: "Admin HME", passwordHash, role: "SUPER_ADMIN" },
-    create: { name: "Admin HME", email: adminEmail, passwordHash, role: "SUPER_ADMIN" },
-  });
+  if (passwordHash) {
+    if (!/^\$2[aby]\$\d{2}\$/.test(passwordHash)) {
+      throw new Error("ADMIN_PASSWORD_HASH tidak valid. Buat akun admin dengan npm run create-admin.");
+    }
+
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { name: "Admin HME", passwordHash, role: "SUPER_ADMIN" },
+      create: { name: "Admin HME", email: adminEmail, passwordHash, role: "SUPER_ADMIN" },
+    });
+  }
 
   const openOrder = await prisma.openOrder.upsert({
     where: { id: "demo-open-order" },
@@ -78,6 +83,34 @@ async function main() {
         maximumQuantity: product.maximumQuantity,
       },
     });
+
+    const variants = product.slug === "kaos-hme-demo"
+      ? ["Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Ukuran XXL"].map((name) => ({
+          name,
+          stockQuantity: null,
+        }))
+      : [{ name: "Standar", stockQuantity: product.stockQuantity }];
+
+    for (const variant of variants) {
+      const existingVariant = await prisma.productVariant.findFirst({
+        where: { productId: savedProduct.id, name: variant.name },
+      });
+      if (existingVariant) {
+        await prisma.productVariant.update({
+          where: { id: existingVariant.id },
+          data: { price: null, stockQuantity: variant.stockQuantity, status: "ACTIVE" },
+        });
+      } else {
+        await prisma.productVariant.create({
+          data: {
+            productId: savedProduct.id,
+            name: variant.name,
+            stockQuantity: variant.stockQuantity,
+            status: "ACTIVE",
+          },
+        });
+      }
+    }
   }
 
   const settings = {

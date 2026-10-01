@@ -22,7 +22,3 @@ export async function verifyAdminCredentials(email: string, password: string) {
     return null;
   }
 }
-
-export function getDefaultAdminPasswordHash() {
-  return process.env.ADMIN_PASSWORD_HASH ?? "$2b$12$mLWexroKRl27.Xptm6.9HepiTCk3vGKz12OgEG4xJPquhwkBxH.3q";
-}

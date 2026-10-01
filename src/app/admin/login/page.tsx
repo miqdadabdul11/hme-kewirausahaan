@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -35,7 +36,7 @@ export default function AdminLoginPage() {
       }
 
       router.push("/admin");
-    } catch (err) {
+    } catch {
       setLoading(false);
       setError("Terjadi kesalahan jaringan.");
     }
@@ -45,7 +46,7 @@ export default function AdminLoginPage() {
     <div className={styles.loginContainer}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <img src="/logo-hme.png" alt="HME Logo" className={styles.logo} />
+          <Image src="/logo-hme.png" alt="HME FPTI UPI" width={64} height={64} className={styles.logo} />
           <h1 className={`heading ${styles.title}`}>Portal Admin HME</h1>
           <p className={styles.subtitle}>Sistem Manajemen Kewirausahaan</p>
         </div>

@@ -19,7 +19,7 @@ Website resmi Sub Kewirausahaan HME yang memfasilitasi katalog produk, Open Orde
 
 ## Persyaratan
 
-- Node.js 20+
+- Node.js 20.12+
 - PostgreSQL
 - npm
 
@@ -40,11 +40,11 @@ DIRECT_URL="postgresql://postgres:postgres@localhost:5432/hme_kewirausahaan?sche
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="ganti-dengan-string-rahasia-yang-panjang"
 ADMIN_EMAIL="admin@hme.ac.id"
-ADMIN_PASSWORD="strong-password-here"
+ADMIN_PASSWORD="ganti-dengan-password-kuat"
 ```
 
 Catatan:
-- `ADMIN_PASSWORD` dipakai saat membuat admin pertama lewat CLI.
+- `ADMIN_PASSWORD` dipakai saat membuat atau mereset admin lewat CLI; simpan hanya di `.env` lokal, jangan di-commit.
 - Untuk deployment di Vercel, simpan variabel tersebut di environment variables project.
 
 ## Migrasi database
@@ -65,7 +65,7 @@ npx prisma db push
 npx prisma db seed
 ```
 
-Seed akan membuat admin default sesuai `ADMIN_EMAIL` dan `ADMIN_PASSWORD` jika tersedia, serta sample Open Order dan produk demo.
+Seed menyiapkan sample Open Order dan produk demo. Untuk membuat atau mereset akun admin, jalankan `npm run create-admin`; seed tidak membuat password default.
 
 ## Membuat admin pertama
 
@@ -84,6 +84,14 @@ Atau:
 ```bash
 npm run create-admin -- "password-baru"
 ```
+
+Untuk mereset password akun admin dari terminal dengan input password tersembunyi:
+
+```bash
+npm run reset-admin-password
+```
+
+CLI meminta email (Enter memakai `ADMIN_EMAIL`) dan meminta password baru dua kali tanpa menampilkannya; password di-hash menggunakan bcryptjs lalu disimpan ke tabel user.
 
 ## Menjalankan aplikasi
 
@@ -108,8 +116,10 @@ npm run start
 
 1. Login ke halaman admin dengan email yang dibuat via CLI.
 2. Kelola Open Order, produk, dan status pesanan dari sidebar.
-3. Gunakan halaman produk untuk menambahkan varian, stok, target pre-order, dan status.
-4. Pastikan setiap perubahan status pesanan dilakukan secara konsisten dengan aturan order dan payment yang berlaku di aplikasi.
+3. Di halaman Produk, tambahkan pilihan varian seperti `Ukuran M · Model Oversize`; setiap pilihan dapat memiliki SKU, harga khusus, dan stoknya sendiri.
+4. Pembeli memilih varian dan jumlah pada halaman detail, lalu menambahkannya ke keranjang sebelum checkout.
+5. Gunakan halaman produk untuk mengatur stok ready stock per varian, target pre-order, foto, kategori, deskripsi, dan status.
+6. Pastikan setiap perubahan status pesanan dilakukan secara konsisten dengan aturan order dan payment yang berlaku di aplikasi.
 
 ## Deploy ke Vercel
 
@@ -125,4 +135,3 @@ npm run start
 - Session admin disimpan dan dicek di server.
 - Semua validasi penting berada di backend.
 - Data sensitif seperti NIM, WhatsApp, email, dan bukti pembayaran hanya ditampilkan untuk role admin yang berwenang.
-

@@ -8,27 +8,12 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { clearCart, getCartItemKey, useCart } from "@/lib/cart-store";
 import styles from "./checkout.module.css";
-
-type CartItem = {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [items] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-
-    try {
-      const stored = window.localStorage.getItem("hme-cart");
-      return stored ? (JSON.parse(stored) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  const items = useCart();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   
@@ -73,7 +58,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      localStorage.removeItem("hme-cart");
+      clearCart();
       router.push(`/order-tracking?orderNumber=${encodeURIComponent(result.order.orderNumber)}`);
     } catch {
       setLoading(false);
@@ -196,9 +181,10 @@ export default function CheckoutPage() {
               
               <div className={styles.itemList}>
                 {items.map((item) => (
-                  <div key={item.productId} className={styles.cartItem}>
+                  <div key={getCartItemKey(item)} className={styles.cartItem}>
                     <div className={styles.itemInfo}>
                       <span className={styles.itemName}>{item.name}</span>
+                      {item.variantName && <span>{item.variantName}</span>}
                       <span className={styles.itemQty}>Qty: {item.quantity}</span>
                     </div>
                     <span className={styles.itemPrice}>Rp {(item.price * item.quantity).toLocaleString("id-ID")}</span>

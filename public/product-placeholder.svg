@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" fill="none">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B2A5B"/>
+      <stop offset="1" stop-color="#071A38"/>
+    </linearGradient>
+    <pattern id="circuits" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M0 40h24a16 16 0 0 0 16-16V0M80 40H56a16 16 0 0 0-16 16v24" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>
+      <circle cx="40" cy="24" r="3" fill="#FFC21A" fill-opacity=".55"/>
+      <circle cx="40" cy="56" r="3" fill="#FFC21A" fill-opacity=".55"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="url(#background)"/>
+  <rect width="800" height="1000" fill="url(#circuits)"/>
+  <circle cx="400" cy="442" r="210" fill="#fff" fill-opacity=".06"/>
+  <rect x="214" y="294" width="372" height="296" rx="28" stroke="#FFC21A" stroke-width="8"/>
+  <path d="m214 372 186 126 186-126" stroke="#FFC21A" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M400 498v92" stroke="#FFC21A" stroke-width="8"/>
+  <text x="400" y="708" fill="#fff" font-family="Arial,sans-serif" font-size="42" font-weight="700" text-anchor="middle">HME FPTI UPI</text>
+  <text x="400" y="762" fill="#fff" fill-opacity=".7" font-family="Arial,sans-serif" font-size="24" text-anchor="middle">Foto produk segera hadir</text>
+</svg>

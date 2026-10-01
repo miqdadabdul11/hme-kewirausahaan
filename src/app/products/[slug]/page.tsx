@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { AddToCart } from "@/components/products/AddToCart";
 import styles from "./product-detail.module.css";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     prisma.product.findUnique({
       where: { slug },
       include: {
+        variants: {
+          orderBy: { name: "asc" },
+        },
         orderItems: {
           where: { order: { is: { orderStatus: { not: "CANCELLED" } } } },
           select: { quantity: true },
@@ -34,7 +38,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const linkedOpenOrders = product.openOrderProducts.map((entry) => entry.openOrder);
   const openOrder = linkedOpenOrders.find((entry) => entry.status === "OPEN") ?? linkedOpenOrders[0] ?? openOrders.find((entry) => entry.status === "OPEN");
   const storeStatus = getStoreStatus(openOrders);
-  const isSoldOut = product.type === "READY_STOCK" && (product.stockQuantity ?? 0) <= 0;
+  const hasVariants = product.variants.length > 0;
+  const availableStock = hasVariants
+    ? product.variants.filter((variant) => variant.status === "ACTIVE").reduce((sum, variant) => sum + (variant.stockQuantity ?? 0), 0)
+    : product.stockQuantity ?? 0;
+  const isSoldOut = product.type === "READY_STOCK" && availableStock <= 0;
 
   return (
     <>
@@ -43,7 +51,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <section className={styles.layout}>
           <div 
             className={styles.imageContainer} 
-            style={{ backgroundImage: `url(${product.image ?? "/images/default-product.jpg"})` }}
+            style={{ backgroundImage: `url(${product.image ?? "/product-placeholder.svg"})` }}
           >
             {isSoldOut && <div className={styles.soldOutBadge}>SOLD OUT</div>}
           </div>
@@ -69,7 +77,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <div className={styles.infoRow} style={{ marginTop: '12px' }}>
                   <span className={styles.infoLabel}>Stok Tersedia</span>
                   <span className={styles.infoValue}>
-                    {product.stockQuantity ?? 0} pcs
+                    {availableStock} pcs
                   </span>
                 </div>
               ) : progress ? (
@@ -103,9 +111,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             ) : (
               <div className={styles.actions}>
-                <Link href={`/checkout?productId=${product.id}`} style={{ flex: 1 }}>
-                  <Button size="lg" style={{ width: '100%' }}>Beli Sekarang</Button>
-                </Link>
+                <AddToCart productId={product.id} name={product.name} price={product.price} type={product.type} variants={product.variants} />
                 <Link href="/products" style={{ flex: 1 }}>
                   <Button variant="ghost" size="lg" style={{ width: '100%' }}>Kembali</Button>
                 </Link>

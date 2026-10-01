@@ -14,6 +14,10 @@ export default async function ProductsPage() {
   const products = await prisma.product.findMany({
     where: { status: "ACTIVE" },
     include: {
+      variants: {
+        where: { status: "ACTIVE" },
+        select: { stockQuantity: true },
+      },
       orderItems: {
         where: { order: { is: { orderStatus: { not: "CANCELLED" } } } },
         select: { quantity: true },
@@ -29,7 +33,7 @@ export default async function ProductsPage() {
         <div className={styles.header}>
           <div>
             <h1 className="heading">Semua Produk</h1>
-            <p>Jelajahi seluruh koleksi merchandise resmi HME ITB.</p>
+            <p>Jelajahi seluruh koleksi merchandise resmi HME FPTI UPI.</p>
           </div>
           <Link href="/cart">
             <Button variant="secondary">Lihat Keranjang</Button>
@@ -45,13 +49,16 @@ export default async function ProductsPage() {
           <div className={styles.grid}>
             {products.map((product) => {
               const statusInfo = product.type === "PRE_ORDER" ? getProductProgress(product) : null;
-              const isSoldOut = product.type === "READY_STOCK" && (product.stockQuantity ?? 0) <= 0;
+              const stockQuantity = product.variants.length > 0
+                ? product.variants.reduce((sum, variant) => sum + (variant.stockQuantity ?? 0), 0)
+                : product.stockQuantity ?? 0;
+              const isSoldOut = product.type === "READY_STOCK" && stockQuantity <= 0;
 
               return (
                 <Card key={product.id} className={styles.productCard}>
                   <div 
                     className={styles.productImage} 
-                    style={{ backgroundImage: `url(${product.image ?? "/images/default-product.jpg"})` }} 
+                    style={{ backgroundImage: `url(${product.image ?? "/product-placeholder.svg"})` }}
                   >
                     {isSoldOut && <span className={styles.soldOutBadge}>SOLD OUT</span>}
                   </div>
@@ -62,7 +69,7 @@ export default async function ProductsPage() {
                     <div className={styles.priceRow}>
                       <span className={styles.price}>{formatCurrency(product.price)}</span>
                       {product.type === "READY_STOCK" && !isSoldOut && (
-                        <span className={styles.stockText}>Sisa {product.stockQuantity}</span>
+                        <span className={styles.stockText}>Sisa {stockQuantity}</span>
                       )}
                     </div>
 

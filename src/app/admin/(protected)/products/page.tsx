@@ -17,6 +17,24 @@ type Product = {
   category: string | null;
   image: string | null;
   openOrderId: string | null;
+  variants: ProductVariant[];
+};
+
+type ProductVariant = {
+  id: string;
+  name: string;
+  sku: string | null;
+  price: number | null;
+  stockQuantity: number | null;
+  status: string;
+};
+
+type VariantForm = {
+  id?: string;
+  name: string;
+  sku: string;
+  price: string;
+  stockQuantity: string;
 };
 
 type OpenOrder = { id: string; name: string; status: string };
@@ -35,12 +53,20 @@ const emptyForm = {
   category: "", image: "", openOrderId: "",
 };
 
+const newVariant = (): VariantForm => ({
+  name: "Standar",
+  sku: "",
+  price: "",
+  stockQuantity: "0",
+});
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<typeof emptyForm>(emptyForm);
+  const [variants, setVariants] = useState<VariantForm[]>([newVariant()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +87,7 @@ export default function AdminProductsPage() {
   const openNew = () => {
     setEditing(null);
     setForm(emptyForm);
+    setVariants([newVariant()]);
     setError(null);
     setShowForm(true);
   };
@@ -76,12 +103,30 @@ export default function AdminProductsPage() {
       category: p.category ?? "", image: p.image ?? "",
       openOrderId: p.openOrderId ?? "",
     });
+    setVariants(p.variants.length > 0
+      ? p.variants.map((variant) => ({
+          id: variant.id,
+          name: variant.name,
+          sku: variant.sku ?? "",
+          price: variant.price == null ? "" : String(variant.price),
+          stockQuantity: variant.stockQuantity == null ? "0" : String(variant.stockQuantity),
+        }))
+      : [{
+          ...newVariant(),
+          stockQuantity: String(p.stockQuantity ?? 0),
+        }]);
     setError(null);
     setShowForm(true);
   };
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleVariantChange = (index: number, field: keyof VariantForm, value: string) => {
+    setVariants((current) => current.map((variant, variantIndex) =>
+      variantIndex === index ? { ...variant, [field]: value } : variant,
+    ));
   };
 
   const save = async () => {
@@ -97,16 +142,32 @@ export default function AdminProductsPage() {
       targetMinimum: form.targetMinimum !== "" ? Number(form.targetMinimum) : 0,
       maximumQuantity: form.maximumQuantity !== "" ? Number(form.maximumQuantity) : null,
       openOrderId: form.openOrderId || null,
+      variants: variants.map((variant) => ({
+        ...(variant.id ? { id: variant.id } : {}),
+        name: variant.name,
+        sku: variant.sku,
+        price: variant.price === "" ? null : Number(variant.price),
+        stockQuantity: form.type === "READY_STOCK" ? Number(variant.stockQuantity) : null,
+      })),
     };
-    const res = await fetch("/api/admin/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    setSaving(false);
-    if (!res.ok) { const d = await res.json(); setError(d.error ?? "Gagal menyimpan."); return; }
-    setShowForm(false);
-    fetchAll();
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Gagal menyimpan.");
+        return;
+      }
+      setShowForm(false);
+      await fetchAll();
+    } catch {
+      setError("Terjadi kesalahan jaringan. Periksa koneksi lalu coba lagi.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -155,7 +216,11 @@ export default function AdminProductsPage() {
                     </span>
                   </td>
                   <td className={styles.mono}>
-                    {p.type === "READY_STOCK" ? `${p.stockQuantity ?? 0} pcs` : `Target: ${p.targetMinimum ?? 0}`}
+                    {p.type === "READY_STOCK"
+                      ? `${p.variants.length > 0
+                          ? p.variants.reduce((sum, variant) => sum + (variant.stockQuantity ?? 0), 0)
+                          : p.stockQuantity ?? 0} pcs`
+                      : `Target: ${p.targetMinimum ?? 0}`}
                   </td>
                   <td style={{ color: "var(--gray-500)", fontSize: "0.875rem" }}>{p.category ?? "—"}</td>
                   <td>
@@ -205,12 +270,7 @@ export default function AdminProductsPage() {
                   </select>
                 </div>
               </div>
-              {form.type === "READY_STOCK" ? (
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Stok Tersedia</label>
-                  <input className={styles.formInput} type="number" value={form.stockQuantity} onChange={handleChange("stockQuantity")} placeholder="0" />
-                </div>
-              ) : (
+              {form.type === "PRE_ORDER" && (
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>Target Minimum</label>
@@ -222,6 +282,86 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
               )}
+              <div className={styles.formGroup}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div>
+                    <label className={styles.formLabel}>Varian dan pilihan pembeli</label>
+                    <p style={{ color: "var(--gray-500)", fontSize: "0.8rem", margin: "4px 0 0" }}>
+                      Contoh nama: Ukuran M · Model Oversize. Pembeli memilih salah satu varian ini.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.btnIcon}
+                    onClick={() => setVariants((current) => [...current, { ...newVariant(), name: "" }])}
+                  >
+                    + Tambah varian
+                  </button>
+                </div>
+                {variants.map((variant, index) => (
+                  <div key={variant.id ?? `new-${index}`} className={styles.tableCard} style={{ padding: 14, marginTop: 12 }}>
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Nama pilihan</label>
+                        <input
+                          className={styles.formInput}
+                          value={variant.name}
+                          onChange={(event) => handleVariantChange(index, "name", event.target.value)}
+                          placeholder="Ukuran M · Model Oversize"
+                          required
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>SKU (opsional)</label>
+                        <input
+                          className={styles.formInput}
+                          value={variant.sku}
+                          onChange={(event) => handleVariantChange(index, "sku", event.target.value)}
+                          placeholder="TSHIRT-M-OVR"
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.formRow} style={{ marginTop: 12 }}>
+                      <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Harga khusus (kosong = harga produk)</label>
+                        <input
+                          className={styles.formInput}
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={variant.price}
+                          onChange={(event) => handleVariantChange(index, "price", event.target.value)}
+                          placeholder={form.price || "Ikuti harga produk"}
+                        />
+                      </div>
+                      {form.type === "READY_STOCK" && (
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>Stok varian</label>
+                          <input
+                            className={styles.formInput}
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={variant.stockQuantity}
+                            onChange={(event) => handleVariantChange(index, "stockQuantity", event.target.value)}
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {variants.length > 1 && (
+                      <button
+                        type="button"
+                        className={styles.btnDanger}
+                        style={{ marginTop: 12 }}
+                        onClick={() => setVariants((current) => current.filter((_, variantIndex) => variantIndex !== index))}
+                      >
+                        Hapus varian
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>URL Gambar (opsional)</label>
                 <input className={styles.formInput} value={form.image} onChange={handleChange("image")} placeholder="https://..." />

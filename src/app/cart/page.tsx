@@ -1,54 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getCartItemKey, saveCart, useCart } from "@/lib/cart-store";
 import styles from "./cart.module.css";
 
-type CartItem = {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
-
 export default function CartPage() {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-
-    try {
-      const stored = window.localStorage.getItem("hme-cart");
-      return stored ? (JSON.parse(stored) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  const items = useCart();
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [items],
   );
 
-  const updateQuantity = (productId: string, delta: number) => {
+  const updateQuantity = (itemKey: string, delta: number) => {
     const next = items
       .map((item) =>
-        item.productId === productId
+        getCartItemKey(item) === itemKey
           ? { ...item, quantity: Math.max(0, item.quantity + delta) }
           : item,
       )
       .filter((item) => item.quantity > 0);
 
-    setItems(next);
-    localStorage.setItem("hme-cart", JSON.stringify(next));
+    saveCart(next);
   };
 
-  const removeItem = (productId: string) => {
-    const next = items.filter((item) => item.productId !== productId);
-    setItems(next);
-    localStorage.setItem("hme-cart", JSON.stringify(next));
+  const removeItem = (itemKey: string) => {
+    const next = items.filter((item) => getCartItemKey(item) !== itemKey);
+    saveCart(next);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -76,19 +59,20 @@ export default function CartPage() {
               ) : (
                 <div className={styles.itemList}>
                   {items.map((item) => (
-                    <div className={styles.cartItem} key={item.productId}>
+                    <div className={styles.cartItem} key={getCartItemKey(item)}>
                       <div className={styles.itemInfo}>
                         <h3 className={styles.itemName}>{item.name}</h3>
+                        {item.variantName && <span>{item.variantName}</span>}
                         <span className={styles.itemPrice}>Rp {item.price.toLocaleString("id-ID")}</span>
                       </div>
                       
                       <div className={styles.itemActions}>
                         <div className={styles.stepper}>
-                          <button className={styles.stepBtn} onClick={() => updateQuantity(item.productId, -1)}>-</button>
+                          <button className={styles.stepBtn} onClick={() => updateQuantity(getCartItemKey(item), -1)}>-</button>
                           <span className={styles.qty}>{item.quantity}</span>
-                          <button className={styles.stepBtn} onClick={() => updateQuantity(item.productId, 1)}>+</button>
+                          <button className={styles.stepBtn} onClick={() => updateQuantity(getCartItemKey(item), 1)}>+</button>
                         </div>
-                        <Button variant="danger" size="sm" onClick={() => removeItem(item.productId)}>
+                        <Button variant="danger" size="sm" onClick={() => removeItem(getCartItemKey(item))}>
                           Hapus
                         </Button>
                       </div>

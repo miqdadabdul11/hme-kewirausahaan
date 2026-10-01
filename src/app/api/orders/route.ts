@@ -3,7 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 class OrderInputError extends Error {}
 
-type OrderLine = { productId: string; quantity: number; variantName: string | null };
+type OrderLine = {
+  productId: string;
+  quantity: number;
+  variantId: string | null;
+  expectedPrice: number;
+};
 
 function serializeOrder(order: {
   paymentMethod: string | null;
@@ -54,13 +59,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Data pemesanan tidak lengkap." }, { status: 400 });
   }
 
-  const lines: OrderLine[] = items.map((input: { productId?: unknown; quantity?: unknown; variant?: unknown }) => ({
+  const lines: OrderLine[] = items.map((input: { productId?: unknown; quantity?: unknown; variantId?: unknown; price?: unknown }) => ({
     productId: String(input.productId || ""),
     quantity: Number(input.quantity),
-    variantName: input.variant ? String(input.variant) : null,
+    variantId: typeof input.variantId === "string" ? input.variantId : null,
+    expectedPrice: Number(input.price),
   }));
-  if (lines.some((line) => !line.productId || !Number.isInteger(line.quantity) || line.quantity <= 0)) {
-    return NextResponse.json({ error: "Jumlah pesanan harus valid." }, { status: 400 });
+  if (lines.some((line) => !line.productId || !Number.isInteger(line.quantity) || line.quantity <= 0 ||
+    line.quantity > 10 || !Number.isSafeInteger(line.expectedPrice) || line.expectedPrice < 0)) {
+    return NextResponse.json({ error: "Jumlah dan harga pesanan harus valid." }, { status: 400 });
   }
 
   try {
@@ -81,21 +88,48 @@ export async function POST(request: Request) {
       for (const line of lines) {
         quantities.set(line.productId, (quantities.get(line.productId) ?? 0) + line.quantity);
       }
+      if ([...quantities.values()].some((quantity) => quantity > 10)) {
+        throw new OrderInputError("Maksimal 10 pcs per produk dalam satu pesanan.");
+      }
 
       const products = await transaction.product.findMany({
         where: { id: { in: [...quantities.keys()] }, status: "ACTIVE" },
+        include: { variants: true },
       });
       const productsById = new Map(products.map((product) => [product.id, product]));
       if (productsById.size !== quantities.size) {
         throw new OrderInputError("Salah satu produk tidak tersedia.");
       }
 
-      for (const [productId, quantity] of quantities) {
-        const product = productsById.get(productId)!;
-        if (product.type === "READY_STOCK" && (product.stockQuantity ?? 0) < quantity) {
-          throw new OrderInputError("Maaf, stok produk ini sudah habis.");
+      const variantQuantities = new Map<string, number>();
+      for (const line of lines) {
+        const product = productsById.get(line.productId)!;
+        const variant = line.variantId
+          ? product.variants.find((item) => item.id === line.variantId)
+          : null;
+        if (product.variants.length > 0 && (!variant || variant.status !== "ACTIVE")) {
+          throw new OrderInputError("Silakan pilih varian produk yang masih tersedia.");
+        }
+        if (product.variants.length === 0 && line.variantId) {
+          throw new OrderInputError("Varian produk sudah tidak tersedia.");
         }
 
+        const unitPrice = variant?.price ?? product.price;
+        if (line.expectedPrice !== unitPrice) {
+          throw new OrderInputError("Harga berubah, silakan periksa kembali keranjangmu.");
+        }
+
+        if (product.type === "READY_STOCK") {
+          if (variant) {
+            variantQuantities.set(variant.id, (variantQuantities.get(variant.id) ?? 0) + line.quantity);
+          } else if ((product.stockQuantity ?? 0) < quantities.get(product.id)!) {
+            throw new OrderInputError("Maaf, stok produk ini sudah habis.");
+          }
+        }
+      }
+
+      for (const [productId, quantity] of quantities) {
+        const product = productsById.get(productId)!;
         if (product.type === "PRE_ORDER" && product.maximumQuantity !== null) {
           const current = await transaction.orderItem.aggregate({
             where: {
@@ -112,7 +146,7 @@ export async function POST(request: Request) {
 
       for (const [productId, quantity] of quantities) {
         const product = productsById.get(productId)!;
-        if (product.type === "READY_STOCK") {
+        if (product.type === "READY_STOCK" && product.variants.length === 0) {
           const updated = await transaction.product.updateMany({
             where: { id: productId, stockQuantity: { gte: quantity } },
             data: { stockQuantity: { decrement: quantity } },
@@ -121,15 +155,27 @@ export async function POST(request: Request) {
         }
       }
 
+      for (const [variantId, quantity] of variantQuantities) {
+        const updated = await transaction.productVariant.updateMany({
+          where: { id: variantId, status: "ACTIVE", stockQuantity: { gte: quantity } },
+          data: { stockQuantity: { decrement: quantity } },
+        });
+        if (updated.count !== 1) throw new OrderInputError("Maaf, stok varian yang dipilih sudah habis.");
+      }
+
       const itemsToCreate = lines.map((line) => {
         const product = productsById.get(line.productId)!;
+        const variant = line.variantId
+          ? product.variants.find((item) => item.id === line.variantId)!
+          : null;
+        const unitPrice = variant?.price ?? product.price;
         return {
           productId: product.id,
           productName: product.name,
-          variantName: line.variantName,
+          variantName: variant?.name ?? null,
           quantity: line.quantity,
-          price: product.price,
-          subtotal: product.price * line.quantity,
+          price: unitPrice,
+          subtotal: unitPrice * line.quantity,
         };
       });
       const totalAmount = itemsToCreate.reduce((sum, item) => sum + item.subtotal, 0);

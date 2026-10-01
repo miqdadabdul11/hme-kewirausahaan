@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
+import { existsSync } from "node:fs";
 
 if (typeof process.loadEnvFile === "function") {
-  process.loadEnvFile(".env");
-  process.loadEnvFile(".env.local");
+  if (existsSync(".env.local")) process.loadEnvFile(".env.local");
+  if (existsSync(".env")) process.loadEnvFile(".env");
 }
 
 const prisma = new PrismaClient();

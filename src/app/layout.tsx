@@ -7,11 +7,11 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 
 export const metadata: Metadata = {
-  title: "HME Kewirausahaan",
-  description: "Platform pemesanan merchandise dan produk HME Kewirausahaan.",
+  title: "Sub Kewirausahaan HME FPTI UPI",
+  description: "Platform pemesanan produk dan merchandise HME FPTI UPI.",
   openGraph: {
-    title: "HME Kewirausahaan",
-    description: "Pesan merchandise teknik elektro HME Kewirausahaan.",
+    title: "Sub Kewirausahaan HME FPTI UPI",
+    description: "Pesan merchandise HME FPTI UPI.",
     images: ["/logo-hme.png"],
   },
   icons: { icon: "/logo-hme.png" },
