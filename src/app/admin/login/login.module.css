@@ -23,11 +23,11 @@
   margin-bottom: 32px;
 }
 .logo {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
+  width: 84px;
+  height: 88px;
+  margin: 0 auto 12px;
   display: block;
-  border-radius: 16px;
+  object-fit: contain;
 }
 .title {
   font-size: 1.5rem;

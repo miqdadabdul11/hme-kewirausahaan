@@ -14,6 +14,9 @@
 - Normalisasi SKU varian opsional yang diisi `-` menjadi kosong, validasi SKU ganda dalam satu produk, dan tampilkan pesan aman untuk constraint SKU/slug dan relasi Open Order saat penyimpanan gagal.
 - Beri pesan spesifik saat varian edit sudah kedaluwarsa; sertakan kode korelasi dan diagnostik aman di log server untuk kegagalan tak terduga agar error produksi tidak tertutup pesan umum.
 - Atasi timeout transaksi simpan produk dengan membuat varian baru secara batch, mengurangi query relasi yang tidak perlu, dan menaikkan timeout interaktif menjadi 15 detik.
+- Tampilkan varian yang dipilih pada daftar/detail pesanan admin dan tracking; gunakan kolom `OrderItem.variantName` yang telah menyimpan nama varian agar mudah ditemukan di Supabase.
+- Tampilkan produk berstatus `COMING_SOON` di beranda dan katalog dengan penanda serta halaman detail tanpa opsi pemesanan.
+- Tambahkan tautan Admin pada navigasi mobile, gunakan logo HME transparan yang dipotong rapat, tampilkan tenggat Open Order dalam WIB, dan rapikan tipografi hero.
 - Hapus hash password fallback yang tertanam di source/seed; admin dibuat atau direset melalui CLI, dan hash seed divalidasi sebelum dipakai.
 - Tambahkan CLI `npm run create-admin` untuk membuat atau memperbarui akun admin pertama dari environment variable tanpa menaruh secret di source code.
 - Dokumentasikan setup dan alur admin di README Indonesia untuk memudahkan onboarding proyek.

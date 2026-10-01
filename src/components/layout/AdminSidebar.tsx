@@ -21,7 +21,7 @@ export const AdminSidebar = () => {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.header}>
-        <Image src="/logo-hme.png" alt="HME FPTI UPI" width={36} height={36} className={styles.logo} />
+        <Image src="/logo-hme-mark.png" alt="HME FPTI UPI" width={44} height={46} className={styles.logo} />
         <div className={styles.brand}>
           <span className={styles.title}>Admin Panel</span>
           <span className={styles.subtitle}>Kewirausahaan HME</span>

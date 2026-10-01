@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatCurrency, getProductProgress, getStoreStatus } from "@/lib/catalog";
+import { formatCurrency, formatDateTimeIndonesia, getProductProgress, getStoreStatus } from "@/lib/catalog";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
@@ -27,13 +27,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         openOrderProducts: { include: { openOrder: true } },
       },
     }),
-    prisma.openOrder.findMany({ orderBy: { startAt: "asc" }, select: { id: true, name: true, status: true } }),
+    prisma.openOrder.findMany({ orderBy: { startAt: "asc" }, select: { id: true, name: true, status: true, endAt: true } }),
   ]);
 
-  if (!product || product.status !== "ACTIVE") {
+  if (!product || !["ACTIVE", "COMING_SOON"].includes(product.status)) {
     notFound();
   }
 
+  const isComingSoon = product.status === "COMING_SOON";
   const progress = product.type === "PRE_ORDER" ? getProductProgress(product) : null;
   const linkedOpenOrders = product.openOrderProducts.map((entry) => entry.openOrder);
   const openOrder = linkedOpenOrders.find((entry) => entry.status === "OPEN") ?? linkedOpenOrders[0] ?? openOrders.find((entry) => entry.status === "OPEN");
@@ -59,7 +60,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className={styles.content}>
             <div className={styles.header}>
               <div className={styles.type}>
-                <Badge variant="neutral">{product.type === "READY_STOCK" ? "READY STOCK" : "PRE-ORDER"}</Badge>
+                <Badge variant={isComingSoon ? "warning" : "neutral"}>
+                  {isComingSoon ? "SEGERA HADIR" : product.type === "READY_STOCK" ? "READY STOCK" : "PRE-ORDER"}
+                </Badge>
               </div>
               <h1 className={styles.title}>{product.name}</h1>
               <p className={styles.price}>{formatCurrency(product.price)}</p>
@@ -72,6 +75,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <span className={styles.infoLabel}>Periode Open Order</span>
                 <span className={styles.infoValue}>{openOrder ? openOrder.name : "Belum ditentukan"}</span>
               </div>
+              {openOrder && (
+                <div className={styles.infoRow}>
+                  <span className={styles.infoLabel}>Batas Pre-Order</span>
+                  <span className={styles.infoValue}>{formatDateTimeIndonesia(openOrder.endAt)} WIB</span>
+                </div>
+              )}
               
               {product.type === "READY_STOCK" ? (
                 <div className={styles.infoRow} style={{ marginTop: '12px' }}>
@@ -101,7 +110,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               ) : null}
             </div>
 
-            {storeStatus !== "OPEN" ? (
+            {isComingSoon ? (
+              <div className={styles.comingSoonMessage}>
+                Produk ini belum tersedia untuk dipesan. Pantau halaman ini untuk kabar selanjutnya.
+              </div>
+            ) : storeStatus !== "OPEN" ? (
               <div className={styles.errorBox}>
                 Penjualan sedang tidak aktif. Pantau terus info Open Order berikutnya.
               </div>

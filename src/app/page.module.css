@@ -30,11 +30,12 @@
   -webkit-text-fill-color: transparent;
 }
 .heroDesc {
-  font-size: 1.1rem;
+  max-width: 540px;
+  font-size: clamp(0.95rem, 2.4vw, 1.05rem);
   color: var(--gray-100);
-  opacity: 0.8;
-  line-height: 1.6;
-  margin-bottom: 24px;
+  opacity: 0.9;
+  line-height: 1.7;
+  margin: 0 0 12px;
 }
 .heroActions {
   display: flex;
@@ -91,6 +92,17 @@
   padding: 4px 8px;
   border-radius: 4px;
 }
+.comingSoonBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 999px;
+}
 .productBody {
   display: flex;
   flex-direction: column;
@@ -114,6 +126,11 @@
 }
 .stockText {
   font-size: 0.875rem;
+  color: var(--gray-500);
+}
+.deadlineText {
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--gray-500);
 }
 .progressContainer {

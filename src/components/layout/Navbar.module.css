@@ -20,11 +20,10 @@
   gap: 12px;
 }
 .logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--white);
-  padding: 4px;
+  width: 48px;
+  height: 50px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .brandText {
   display: flex;
@@ -77,18 +76,20 @@
 .mobileNav {
   display: none;
   background: var(--black-900);
-  padding: 12px 20px;
+  padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--black-700);
-  justify-content: space-around;
+  justify-content: space-between;
+  gap: 4px;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
 }
 .mobileNav a {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--gray-100);
+  white-space: nowrap;
 }
 @media (max-width: 768px) {
   .navLinks, .actions { display: none; }

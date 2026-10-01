@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { datetimeLocalIndonesiaToISOString, formatDateTimeIndonesia, toDatetimeLocalIndonesia } from "@/lib/catalog";
 import styles from "../../admin-shared.module.css";
 
 type OpenOrder = {
@@ -40,8 +41,6 @@ export default function AdminOpenOrdersPage() {
     fetchAll();
   }, [fetchAll]);
 
-  const toDatetimeLocal = (iso: string) => iso ? iso.slice(0, 16) : "";
-
   const openNew = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -54,8 +53,8 @@ export default function AdminOpenOrdersPage() {
     setForm({
       name: oo.name,
       description: oo.description ?? "",
-      startAt: toDatetimeLocal(oo.startAt),
-      endAt: toDatetimeLocal(oo.endAt),
+      startAt: toDatetimeLocalIndonesia(oo.startAt),
+      endAt: toDatetimeLocalIndonesia(oo.endAt),
       status: oo.status,
     });
     setError(null);
@@ -80,8 +79,8 @@ export default function AdminOpenOrdersPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: form.name, description: form.description || null,
-        startAt: new Date(form.startAt).toISOString(),
-        endAt: new Date(form.endAt).toISOString(),
+        startAt: datetimeLocalIndonesiaToISOString(form.startAt),
+        endAt: datetimeLocalIndonesiaToISOString(form.endAt),
         status: form.status,
       }),
     });
@@ -126,8 +125,8 @@ export default function AdminOpenOrdersPage() {
                       {oo.status}
                     </span>
                   </td>
-                  <td style={{ fontSize: "0.85rem" }}>{new Date(oo.startAt).toLocaleString("id-ID")}</td>
-                  <td style={{ fontSize: "0.85rem" }}>{new Date(oo.endAt).toLocaleString("id-ID")}</td>
+                  <td style={{ fontSize: "0.85rem" }}>{formatDateTimeIndonesia(oo.startAt)} WIB</td>
+                  <td style={{ fontSize: "0.85rem" }}>{formatDateTimeIndonesia(oo.endAt)} WIB</td>
                   <td className={styles.truncate} style={{ color: "var(--gray-500)", fontSize: "0.875rem" }}>
                     {oo.description ?? "—"}
                   </td>
@@ -156,11 +155,11 @@ export default function AdminOpenOrdersPage() {
               </div>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Waktu Mulai</label>
+                  <label className={styles.formLabel}>Waktu Mulai (WIB)</label>
                   <input className={styles.formInput} type="datetime-local" value={form.startAt} onChange={handleChange("startAt")} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Waktu Selesai</label>
+                  <label className={styles.formLabel}>Waktu Selesai (WIB)</label>
                   <input className={styles.formInput} type="datetime-local" value={form.endAt} onChange={handleChange("endAt")} />
                 </div>
               </div>

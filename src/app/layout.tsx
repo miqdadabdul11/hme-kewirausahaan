@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Sub Kewirausahaan HME FPTI UPI",
     description: "Pesan merchandise HME FPTI UPI.",
-    images: ["/logo-hme.png"],
+    images: ["/logo-hme-mark.png"],
   },
-  icons: { icon: "/logo-hme.png" },
+  icons: { icon: "/logo-hme-mark.png" },
 };
 
 export const viewport: Viewport = {

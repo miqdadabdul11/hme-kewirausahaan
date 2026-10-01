@@ -20,11 +20,8 @@
 }
 
 .logo {
-  background: white;
-  padding: 4px;
-  border-radius: 8px;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 46px;
   object-fit: contain;
   flex-shrink: 0;
 }

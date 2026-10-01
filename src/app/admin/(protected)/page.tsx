@@ -16,7 +16,7 @@ export default async function AdminDashboardPage() {
     prisma.order.findMany({
       take: 8,
       orderBy: { createdAt: "desc" },
-      include: { items: { select: { productName: true, quantity: true } } },
+      include: { items: { select: { productName: true, variantName: true, quantity: true } } },
     }),
     prisma.openOrder.findMany({ orderBy: { startAt: "desc" }, take: 3 }),
   ]);
@@ -93,7 +93,9 @@ export default async function AdminDashboardPage() {
                     <td className={styles.mono}>{order.orderNumber}</td>
                     <td>{order.customerName}</td>
                     <td className={styles.productCell}>
-                      {order.items.map(i => `${i.productName} (${i.quantity}x)`).join(", ")}
+                      {order.items.map(i =>
+                        `${i.productName}${i.variantName ? ` · ${i.variantName}` : ""} (${i.quantity}x)`,
+                      ).join(", ")}
                     </td>
                     <td className={styles.mono}>{formatCurrency(Number(order.totalAmount))}</td>
                     <td>

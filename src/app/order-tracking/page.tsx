@@ -11,6 +11,7 @@ import styles from "./tracking.module.css";
 
 type OrderItem = {
   productName: string;
+  variantName: string | null;
   quantity: number;
 };
 
@@ -125,7 +126,9 @@ export default function OrderTrackingPage() {
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Produk yang Dipesan</span>
                     <span className={styles.infoValue}>
-                      {result.items.map((item) => `${item.productName} (${item.quantity}x)`).join(", ")}
+                      {result.items.map((item) =>
+                        `${item.productName}${item.variantName ? ` · ${item.variantName}` : ""} (${item.quantity}x)`,
+                      ).join(", ")}
                     </span>
                   </div>
                   <div className={styles.infoItem}>

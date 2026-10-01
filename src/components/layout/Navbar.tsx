@@ -15,7 +15,7 @@ export const Navbar = ({ cartCount }: { cartCount?: number }) => {
     <header className={styles.navbar}>
       <div className={styles.container}>
         <Link href="/" className={styles.brand}>
-          <Image src="/logo-hme.png" alt="HME FPTI UPI" width={40} height={40} className={styles.logo} />
+          <Image src="/logo-hme-mark.png" alt="HME FPTI UPI" width={48} height={50} className={styles.logo} />
           <div className={styles.brandText}>
             <span className={styles.title}>Sub Kewirausahaan</span>
             <span className={styles.subtitle}>HME FPTI UPI</span>
@@ -38,6 +38,7 @@ export const Navbar = ({ cartCount }: { cartCount?: number }) => {
         <Link href="/products">Produk</Link>
         <Link href="/cart">Keranjang {visibleCartCount > 0 && <span>({visibleCartCount})</span>}</Link>
         <Link href="/order-tracking">Track</Link>
+        <Link href="/admin/login">Admin</Link>
       </div>
     </header>
   );

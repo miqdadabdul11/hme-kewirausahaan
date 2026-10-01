@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import styles from "../../admin-shared.module.css";
 
-type OrderItem = { productName: string; quantity: number; price: number; subtotal: number };
+type OrderItem = { productName: string; variantName: string | null; quantity: number; price: number; subtotal: number };
 type Order = {
   id: string;
   orderNumber: string;
@@ -143,7 +143,9 @@ export default function AdminOrdersPage() {
                   <td>{order.customerName}</td>
                   <td className={styles.mono}>{order.nim}</td>
                   <td className={styles.truncate}>
-                    {order.items.map(i => `${i.productName}(${i.quantity}x)`).join(", ")}
+                    {order.items.map(i =>
+                      `${i.productName}${i.variantName ? ` · ${i.variantName}` : ""} (${i.quantity}x)`,
+                    ).join(", ")}
                   </td>
                   <td className={styles.mono}>Rp {Number(order.totalAmount).toLocaleString("id-ID")}</td>
                   <td>
@@ -203,7 +205,11 @@ export default function AdminOrdersPage() {
                 <div style={{ background: "var(--gray-100)", borderRadius: 8, padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
                   {selected.items.map((item, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
-                      <span>{item.productName} × {item.quantity}</span>
+                      <span>
+                        {item.productName}
+                        {item.variantName && <strong style={{ display: "block", color: "var(--gray-500)", fontWeight: 600 }}>{item.variantName}</strong>}
+                        × {item.quantity}
+                      </span>
                       <span style={{ fontFamily: "monospace" }}>Rp {Number(item.subtotal).toLocaleString("id-ID")}</span>
                     </div>
                   ))}

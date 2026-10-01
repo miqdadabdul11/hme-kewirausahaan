@@ -44,6 +44,17 @@
   padding: 4px 8px;
   border-radius: 4px;
 }
+.comingSoonBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 999px;
+}
 .productBody {
   display: flex;
   flex-direction: column;
@@ -67,6 +78,11 @@
 }
 .stockText {
   font-size: 0.875rem;
+  color: var(--gray-500);
+}
+.deadlineText {
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--gray-500);
 }
 .progressContainer {
