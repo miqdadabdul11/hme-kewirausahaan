@@ -3,6 +3,8 @@ import { Prisma, ProductStatus, ProductType } from "@prisma/client";
 import { getAdminFromSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
+class ProductSaveError extends Error {}
+
 export async function GET() {
   const admin = await getAdminFromSession();
   if (!admin) return NextResponse.json({ error: "Akses admin diperlukan." }, { status: 401 });
@@ -140,7 +142,9 @@ export async function POST(request: Request) {
               status: "ACTIVE",
             },
           });
-          if (updated.count !== 1) throw new Error("Salah satu varian tidak ditemukan.");
+          if (updated.count !== 1) {
+            throw new ProductSaveError("Salah satu varian sudah berubah atau tidak ditemukan. Muat ulang produk lalu coba lagi.");
+          }
           retainedIds.push(variant.id);
         } else {
           const created = await transaction.productVariant.create({
@@ -180,11 +184,12 @@ export async function POST(request: Request) {
       product: { ...product, openOrderId: openOrderProducts[0]?.openOrderId ?? null },
     });
   } catch (error) {
+    const requestId = crypto.randomUUID();
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       const target = Array.isArray(error.meta?.target)
         ? error.meta.target.map(String).join(",").toLowerCase()
         : String(error.meta?.target ?? "").toLowerCase();
-      console.error("Failed to save product and variants.", { code: error.code, target });
+      console.error("Failed to save product and variants.", { requestId, code: error.code, target });
 
       if (error.code === "P2002") {
         const message = target.includes("sku")
@@ -200,9 +205,24 @@ export async function POST(request: Request) {
       if (error.code === "P2025") {
         return NextResponse.json({ error: "Data produk atau varian berubah. Muat ulang halaman lalu simpan kembali." }, { status: 409 });
       }
+      if (error.code === "P2021" || error.code === "P2022") {
+        return NextResponse.json({
+          error: `Database Vercel belum sesuai dengan versi aplikasi. Kode: ${requestId}.`,
+        }, { status: 500 });
+      }
+    } else if (error instanceof ProductSaveError) {
+      console.warn("Product save rejected because a submitted variant is stale.", { requestId });
+      return NextResponse.json({ error: error.message }, { status: 409 });
     } else {
-      console.error("Failed to save product and variants.");
+      console.error("Unexpected product save failure.", {
+        requestId,
+        name: error instanceof Error ? error.name : typeof error,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
-    return NextResponse.json({ error: "Produk atau varian tidak dapat disimpan." }, { status: 400 });
+    return NextResponse.json({
+      error: `Produk atau varian tidak dapat disimpan. Kode: ${requestId}.`,
+    }, { status: 500 });
   }
 }

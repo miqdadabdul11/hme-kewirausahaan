@@ -12,6 +12,7 @@
 - Lindungi API baca/tulis produk admin dengan sesi admin di server dan validasi satu atau lebih varian pada penyimpanan.
 - Atasi login admin gagal karena hash bcrypt yang tersimpan berisi backslash escape dari `.env`, dan tambahkan CLI reset password interaktif yang menyimpan hash bcryptjs valid langsung ke tabel user.
 - Normalisasi SKU varian opsional yang diisi `-` menjadi kosong, validasi SKU ganda dalam satu produk, dan tampilkan pesan aman untuk constraint SKU/slug dan relasi Open Order saat penyimpanan gagal.
+- Beri pesan spesifik saat varian edit sudah kedaluwarsa; sertakan kode korelasi dan diagnostik aman di log server untuk kegagalan tak terduga agar error produksi tidak tertutup pesan umum.
 - Hapus hash password fallback yang tertanam di source/seed; admin dibuat atau direset melalui CLI, dan hash seed divalidasi sebelum dipakai.
 - Tambahkan CLI `npm run create-admin` untuk membuat atau memperbarui akun admin pertama dari environment variable tanpa menaruh secret di source code.
 - Dokumentasikan setup dan alur admin di README Indonesia untuk memudahkan onboarding proyek.
