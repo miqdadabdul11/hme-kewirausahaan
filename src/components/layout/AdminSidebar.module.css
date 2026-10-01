@@ -5,10 +5,13 @@
   color: var(--white);
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  position: sticky;
+  height: 100dvh;
+  position: fixed;
+  z-index: 45;
+  inset: 0 auto 0 0;
   top: 0;
   overflow: hidden;
+  transition: width 240ms ease, transform 240ms ease;
 }
 
 .header {
@@ -17,11 +20,14 @@
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid rgba(255,255,255,0.07);
+  min-height: 82px;
 }
 
 .logo {
-  width: 44px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
+  aspect-ratio: 1;
+  border-radius: 50%;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -30,6 +36,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex: 1;
 }
 
 .title {
@@ -55,6 +62,7 @@
 }
 
 .link {
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 10px;
   color: rgba(255,255,255,0.6);
@@ -64,6 +72,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.linkLabel,
+.logoutLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .link:hover {
@@ -104,6 +119,17 @@
   font-size: 0.875rem;
   transition: all 0.2s;
   font-family: inherit;
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logoutIcon,
+.collapseBtn,
+.drawerClose {
+  display: none;
 }
 
 .logoutBtn:hover {
@@ -112,55 +138,127 @@
   color: white;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1024px) {
+  .sidebarCollapsed {
+    width: 72px;
+    min-width: 72px;
+  }
+
+  .sidebarCollapsed .header {
+    min-height: 94px;
+    justify-content: center;
+    padding: 32px 8px 8px;
+  }
+
+  .sidebarCollapsed .logo {
+    width: 40px;
+    height: 42px;
+  }
+
+  .sidebarCollapsed .brand,
+  .sidebarCollapsed .linkLabel,
+  .sidebarCollapsed .logoutLabel {
+    display: none;
+  }
+
+  .sidebarCollapsed .collapseBtn {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 6px;
+    background: var(--black-700);
+    color: var(--white);
+    cursor: pointer;
+  }
+
+  .sidebarCollapsed .link {
+    justify-content: center;
+    padding: 10px 4px;
+  }
+
+  .sidebarCollapsed .logoutIcon {
+    display: block;
+    font-size: 1.1rem;
+  }
+
+  .collapseBtn {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--white);
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 1023px) {
   .sidebar {
-    width: 100%;
+    width: min(300px, calc(100vw - 48px));
     min-width: 0;
-    height: auto;
-    min-height: 0;
-    position: relative;
-    overflow: visible;
+    height: 100dvh;
+    position: fixed;
+    z-index: 45;
+    top: 0;
+    left: 0;
+    transform: translateX(-102%);
+    visibility: hidden;
+    transition: transform 240ms ease, visibility 240ms ease;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+    visibility: visible;
   }
 
   .header {
-    padding: 8px 14px;
-  }
-
-  .logo {
-    width: 36px;
-    height: 38px;
+    padding: 16px;
   }
 
   .nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
-    padding: 8px;
-    overflow: visible;
+    padding: 12px 8px;
   }
 
   .link {
-    min-height: 40px;
-    padding: 8px;
-    font-size: 0.78rem;
-  }
-
-  .divider {
-    grid-column: 1 / -1;
-    margin: 4px;
+    min-height: 48px;
+    padding: 12px;
   }
 
   .footer {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 0;
-    border: 0;
+    padding: 16px 12px max(16px, env(safe-area-inset-bottom));
   }
 
   .logoutBtn {
-    width: auto;
-    padding: 8px 10px;
-    font-size: 0.75rem;
+    min-height: 48px;
+  }
+
+  .drawerClose {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .collapseBtn {
+    display: none;
   }
 }

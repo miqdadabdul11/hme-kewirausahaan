@@ -1,23 +1,80 @@
 .container {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--gray-100);
 }
 
 .mainContent {
   flex: 1;
   overflow-x: hidden;
-  min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
+  margin-left: 240px;
+  transition: margin-left 240ms ease;
 }
 
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
+.collapsed .mainContent {
+  margin-left: 72px;
+}
+
+.mobileTopbar,
+.drawerOverlay {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .container,
+  .container.collapsed {
+    display: block;
+  }
+
+  .mobileTopbar {
+    position: sticky;
+    top: 0;
+    z-index: 35;
+    display: flex;
+    min-height: 56px;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 14px;
+    background: var(--black-900);
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  .menuToggle {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: var(--black-700);
+    color: var(--white);
+    font: inherit;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+
+  .drawerOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(0, 0, 0, 0.5);
   }
 
   .mainContent {
-    min-height: calc(100vh - 170px);
     width: 100%;
+    min-height: calc(100dvh - 56px);
+    margin-left: 0;
+  }
+
+  .collapsed .mainContent {
+    margin-left: 0;
   }
 }

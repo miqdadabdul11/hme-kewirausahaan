@@ -12,9 +12,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "E-STORE HME FPTI UPI",
     description: "Pesan merchandise HME FPTI UPI.",
-    images: ["/logo-hme-mark.png"],
+    images: ["/logo-estore.png"],
   },
-  icons: { icon: "/logo-hme-mark.png" },
+  icons: {
+    icon: [{ url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {

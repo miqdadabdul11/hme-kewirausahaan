@@ -22,6 +22,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-inter), sans-serif;
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6, .heading {
@@ -39,6 +40,6 @@ a { text-decoration: none; color: inherit; }
 
 @media (max-width: 768px) {
   .page-shell {
-    padding-bottom: 104px;
+    padding-bottom: 24px;
   }
 }

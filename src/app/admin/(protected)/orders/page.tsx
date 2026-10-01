@@ -118,7 +118,7 @@ export default function AdminOrdersPage() {
       </div>
 
       <div className={styles.tableCard}>
-        <div className={styles.tableWrapper}>
+        <div className={`${styles.tableWrapper} ${styles.orderTableWrapper}`}>
           <table className={`${styles.table} ${styles.orderTable}`}>
             <thead>
               <tr>

@@ -23,8 +23,10 @@
   margin-bottom: 32px;
 }
 .logo {
-  width: 84px;
-  height: 88px;
+  width: 104px;
+  height: 104px;
+  aspect-ratio: 1;
+  border-radius: 50%;
   margin: 0 auto 12px;
   display: block;
   object-fit: contain;

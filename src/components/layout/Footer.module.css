@@ -1,0 +1,152 @@
+.footer {
+  margin-top: 60px;
+  padding: 40px 20px calc(40px + env(safe-area-inset-bottom));
+  background: var(--black-900);
+  color: var(--gray-500);
+  text-align: center;
+}
+
+.contact {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.contactTitle {
+  margin: 0 0 8px;
+  color: var(--white);
+  font-family: var(--font-space);
+  font-size: 1.25rem;
+}
+
+.contactDescription {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.contactLinks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 22px;
+}
+
+.whatsappContact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.whatsappButton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: var(--green-500);
+  color: var(--black-900);
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.whatsappButton:hover {
+  background: var(--green-400);
+}
+
+.whatsappNumber {
+  font-size: 0.8rem;
+}
+
+.contactLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--gray-100);
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.contactLink:hover {
+  color: var(--green-400);
+}
+
+.contactLink svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.contactLink .iconDot {
+  fill: currentColor;
+  stroke: none;
+}
+
+.email {
+  overflow-wrap: anywhere;
+}
+
+.footerMeta {
+  max-width: 1200px;
+  margin: 28px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand {
+  margin: 0 0 8px;
+  color: var(--white);
+  font-family: var(--font-space);
+  font-weight: 700;
+}
+
+.copyright {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .footer {
+    margin-top: 40px;
+    padding: 32px 16px calc(32px + env(safe-area-inset-bottom));
+  }
+
+  .contactDescription {
+    max-width: 36ch;
+    margin: 0 auto;
+  }
+
+  .contactLinks {
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .whatsappContact {
+    width: 100%;
+  }
+
+  .whatsappButton {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .contactLink {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .footerMeta {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+}

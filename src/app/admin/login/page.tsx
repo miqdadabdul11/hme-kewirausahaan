@@ -47,10 +47,10 @@ export default function AdminLoginPage() {
       <div className={styles.loginCard}>
         <div className={styles.header}>
           <Image
-            src="/logo-hme-mark.png"
-            alt="HME FPTI UPI"
-            width={84}
-            height={88}
+            src="/logo-estore.png"
+            alt="Logo E-STORE HME FPTI UPI"
+            width={104}
+            height={104}
             className={styles.logo}
             unoptimized
           />
