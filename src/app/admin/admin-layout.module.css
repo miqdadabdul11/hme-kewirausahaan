@@ -8,4 +8,16 @@
   flex: 1;
   overflow-x: hidden;
   min-height: 100vh;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .mainContent {
+    min-height: calc(100vh - 170px);
+    width: 100%;
+  }
 }

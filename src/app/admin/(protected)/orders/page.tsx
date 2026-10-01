@@ -119,13 +119,15 @@ export default function AdminOrdersPage() {
 
       <div className={styles.tableCard}>
         <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+          <table className={`${styles.table} ${styles.orderTable}`}>
             <thead>
               <tr>
                 <th>Order ID</th>
                 <th>Nama</th>
                 <th>NIM</th>
                 <th>Produk</th>
+                <th>Ukuran / Varian</th>
+                <th>Jumlah</th>
                 <th>Total</th>
                 <th>Status Order</th>
                 <th>Status Bayar</th>
@@ -135,34 +137,45 @@ export default function AdminOrdersPage() {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr className={styles.emptyRow}><td colSpan={9}>Tidak ada pesanan</td></tr>
+                <tr className={styles.emptyRow}><td colSpan={11}>Tidak ada pesanan</td></tr>
               )}
               {filtered.map(order => (
                 <tr key={order.id}>
-                  <td className={styles.mono}>{order.orderNumber}</td>
-                  <td>{order.customerName}</td>
-                  <td className={styles.mono}>{order.nim}</td>
-                  <td>
-                    <div>{[...new Set(order.items.map((item) => item.productName))].join(", ")}</div>
-                    <small style={{ color: "var(--gray-500)" }}>
-                      {order.items.length} baris pesanan
-                    </small>
+                  <td data-label="Order ID" className={styles.mono}>{order.orderNumber}</td>
+                  <td data-label="Nama">{order.customerName}</td>
+                  <td data-label="NIM" className={styles.mono}>{order.nim}</td>
+                  <td data-label="Produk">
+                    <div className={styles.orderItemStack}>
+                      {order.items.map((item, index) => <span key={`${item.productName}-${index}`}>{item.productName}</span>)}
+                    </div>
                   </td>
-                  <td className={styles.mono}>Rp {Number(order.totalAmount).toLocaleString("id-ID")}</td>
-                  <td>
+                  <td data-label="Ukuran / Varian">
+                    <div className={styles.orderItemStack}>
+                      {order.items.map((item, index) => (
+                        <span key={`${item.variantId ?? "default"}-${index}`}>{item.variantName ?? "—"}</span>
+                      ))}
+                    </div>
+                  </td>
+                  <td data-label="Jumlah">
+                    <div className={styles.orderItemStack}>
+                      {order.items.map((item, index) => <span key={`${item.productName}-quantity-${index}`}>{item.quantity} pcs</span>)}
+                    </div>
+                  </td>
+                  <td data-label="Total" className={styles.mono}>Rp {Number(order.totalAmount).toLocaleString("id-ID")}</td>
+                  <td data-label="Status Order">
                     <span className={styles.badge} style={{ background: `${STATUS_COLOR[order.orderStatus]}22`, color: STATUS_COLOR[order.orderStatus] }}>
                       {order.orderStatus}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Status Bayar">
                     <span className={styles.badge} style={{ background: `${PAY_COLOR[order.paymentStatus]}22`, color: PAY_COLOR[order.paymentStatus] }}>
                       {order.paymentStatus}
                     </span>
                   </td>
-                  <td style={{ fontSize: "0.8rem", color: "var(--gray-500)" }}>
+                  <td data-label="Tanggal" style={{ fontSize: "0.8rem", color: "var(--gray-500)" }}>
                     {new Date(order.createdAt).toLocaleDateString("id-ID")}
                   </td>
-                  <td>
+                  <td data-label="Aksi">
                     <button className={styles.btnIcon} onClick={() => openDetail(order)}>Detail</button>
                   </td>
                 </tr>

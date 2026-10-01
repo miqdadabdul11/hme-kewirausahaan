@@ -111,3 +111,56 @@
   border-color: #dc2626;
   color: white;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    position: relative;
+    overflow: visible;
+  }
+
+  .header {
+    padding: 8px 14px;
+  }
+
+  .logo {
+    width: 36px;
+    height: 38px;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 8px;
+    overflow: visible;
+  }
+
+  .link {
+    min-height: 40px;
+    padding: 8px;
+    font-size: 0.78rem;
+  }
+
+  .divider {
+    grid-column: 1 / -1;
+    margin: 4px;
+  }
+
+  .footer {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 0;
+    border: 0;
+  }
+
+  .logoutBtn {
+    width: auto;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+}

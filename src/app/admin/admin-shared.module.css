@@ -45,6 +45,20 @@
   font-size: 0.875rem;
 }
 
+.orderTable {
+  min-width: 1040px;
+}
+
+.orderItemStack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.orderItemStack span {
+  min-height: 20px;
+}
+
 .table th {
   text-align: left;
   padding: 12px 16px;
@@ -300,6 +314,167 @@
   font-family: inherit;
   font-size: 0.9rem;
   transition: background 0.2s;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 24px;
+  }
+
+  .filterBar {
+    flex-wrap: wrap;
+  }
+
+  .filterInput {
+    min-width: 0 !important;
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 12px 28px;
+  }
+
+  .header {
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 1.45rem;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+  }
+
+  .filterBar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .filterInput {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .tableCard {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .tableWrapper {
+    overflow: visible;
+  }
+
+  .orderTable {
+    display: block;
+    min-width: 0;
+  }
+
+  .orderTable thead {
+    display: none;
+  }
+
+  .orderTable tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .orderTable tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+    padding: 6px 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    background: var(--white);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+  }
+
+  .orderTable tbody tr:hover td {
+    background: transparent;
+  }
+
+  .orderTable tbody tr td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--gray-100);
+    overflow-wrap: anywhere;
+    font-size: 0.82rem !important;
+  }
+
+  .orderTable tbody tr td::before {
+    content: attr(data-label);
+    color: var(--gray-500);
+    font-size: 0.66rem;
+    font-family: var(--font-inter), sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .orderTable tbody tr td:nth-child(1),
+  .orderTable tbody tr td:nth-child(2),
+  .orderTable tbody tr td:nth-child(4),
+  .orderTable tbody tr td:nth-child(7),
+  .orderTable tbody tr td:nth-child(11) {
+    grid-column: 1 / -1;
+  }
+
+  .orderTable tbody tr td:nth-child(10),
+  .orderTable tbody tr td:nth-child(11) {
+    border-bottom: 0;
+  }
+
+  .orderTable tbody tr td:nth-child(4) {
+    padding-bottom: 4px;
+  }
+
+  .orderTable tbody tr td:nth-child(5),
+  .orderTable tbody tr td:nth-child(6) {
+    padding-top: 4px;
+  }
+
+  .orderTable tbody tr td:nth-child(5) .orderItemStack,
+  .orderTable tbody tr td:nth-child(6) .orderItemStack {
+    font-weight: 600;
+  }
+
+  .orderTable tbody tr .emptyRow,
+  .orderTable tbody tr td[colspan] {
+    grid-column: 1 / -1;
+    align-items: center;
+    padding: 18px 8px;
+  }
+
+  .modal {
+    padding: 20px 16px;
+    border-radius: 16px;
+    max-height: calc(100dvh - 24px);
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .modalActions {
+    position: sticky;
+    bottom: -20px;
+    padding: 12px 0 4px;
+    background: var(--white);
+  }
 }
 
 .btnAdd:hover { background: var(--green-400); }
