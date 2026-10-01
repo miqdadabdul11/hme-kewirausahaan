@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
             className={styles.logo}
             unoptimized
           />
-          <h1 className={`heading ${styles.title}`}>Portal Admin HME</h1>
+          <h1 className={`heading ${styles.title}`}>Portal Admin</h1>
           <p className={styles.subtitle}>Sistem Manajemen Kewirausahaan</p>
         </div>
         
