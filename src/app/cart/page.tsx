@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
@@ -16,18 +16,16 @@ type CartItem = {
 };
 
 export default function CartPage() {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
 
-  useEffect(() => {
-    const stored = localStorage.getItem("hme-cart");
-    if (stored) {
-      try {
-        setItems(JSON.parse(stored));
-      } catch (e) {}
+    try {
+      const stored = window.localStorage.getItem("hme-cart");
+      return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    } catch {
+      return [];
     }
-    setIsLoaded(true);
-  }, []);
+  });
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -57,7 +55,7 @@ export default function CartPage() {
 
   return (
     <>
-      <Navbar cartCount={isLoaded ? totalItems : 0} />
+      <Navbar cartCount={totalItems} />
       <main className="page-shell compact">
         <div className={styles.header}>
           <h1 className="heading">Keranjang Belanja</h1>
@@ -68,9 +66,7 @@ export default function CartPage() {
           <div className={styles.mainCol}>
             <Card>
               <h2 className={styles.cardTitle}>Daftar Produk</h2>
-              {!isLoaded ? (
-                <div className={styles.emptyState}>Loading...</div>
-              ) : items.length === 0 ? (
+              {items.length === 0 ? (
                 <div className={styles.emptyState}>
                   <p>Keranjang Anda masih kosong.</p>
                   <Link href="/products">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
@@ -19,8 +19,16 @@ type CartItem = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [items] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const stored = window.localStorage.getItem("hme-cart");
+      return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   
@@ -33,16 +41,6 @@ export default function CheckoutPage() {
     notes: "",
     paymentMethod: "Transfer",
   });
-
-  useEffect(() => {
-    const stored = localStorage.getItem("hme-cart");
-    if (stored) {
-      try {
-        setItems(JSON.parse(stored));
-      } catch(e) {}
-    }
-    setIsLoaded(true);
-  }, []);
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -77,7 +75,7 @@ export default function CheckoutPage() {
 
       localStorage.removeItem("hme-cart");
       router.push(`/order-tracking?orderNumber=${encodeURIComponent(result.order.orderNumber)}`);
-    } catch (error) {
+    } catch {
       setLoading(false);
       setMessage("Terjadi kesalahan sistem. Silakan coba lagi.");
     }
@@ -89,7 +87,7 @@ export default function CheckoutPage() {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  if (isLoaded && items.length === 0) {
+  if (items.length === 0) {
     return (
       <>
         <Navbar cartCount={0} />
@@ -109,7 +107,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <Navbar cartCount={isLoaded ? totalItems : 0} />
+      <Navbar cartCount={totalItems} />
       <main className="page-shell compact">
         <div className={styles.header}>
           <h1 className="heading">Checkout Pesanan</h1>

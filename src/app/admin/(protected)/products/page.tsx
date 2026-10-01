@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import styles from "../admin-shared.module.css";
+import styles from "../../admin-shared.module.css";
 
 type Product = {
   id: string;
@@ -53,7 +53,10 @@ export default function AdminProductsPage() {
     if (ooRes.ok) { const d = await ooRes.json(); setOpenOrders(d.openOrders ?? []); }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAll();
+  }, [fetchAll]);
 
   const openNew = () => {
     setEditing(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import styles from "../admin-shared.module.css";
+import styles from "../../admin-shared.module.css";
 
 type OpenOrder = {
   id: string;
@@ -35,7 +35,10 @@ export default function AdminOpenOrdersPage() {
     setOpenOrders(data.openOrders ?? []);
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAll();
+  }, [fetchAll]);
 
   const toDatetimeLocal = (iso: string) => iso ? iso.slice(0, 16) : "";
 

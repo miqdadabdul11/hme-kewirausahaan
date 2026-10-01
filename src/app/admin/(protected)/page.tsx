@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/catalog";
-import styles from "./dashboard.module.css";
+import styles from "../dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 

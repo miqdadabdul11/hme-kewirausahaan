@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import styles from "../admin-shared.module.css";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import styles from "../../admin-shared.module.css";
 
 type OrderItem = { productName: string; quantity: number; price: number; subtotal: number };
 type Order = {
@@ -34,7 +34,6 @@ const PAY_COLOR: Record<string, string> = {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [filtered, setFiltered] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selected, setSelected] = useState<Order | null>(null);
@@ -50,9 +49,12 @@ export default function AdminOrdersPage() {
     setOrders(data.orders ?? []);
   }, []);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
-
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const filtered = useMemo(() => {
     let list = orders;
     if (statusFilter) list = list.filter(o => o.orderStatus === statusFilter);
     if (search) {
@@ -63,7 +65,7 @@ export default function AdminOrdersPage() {
         o.nim.toLowerCase().includes(q)
       );
     }
-    setFiltered(list);
+    return list;
   }, [orders, search, statusFilter]);
 
   const openDetail = (order: Order) => {
