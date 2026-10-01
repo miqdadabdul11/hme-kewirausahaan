@@ -20,10 +20,8 @@
   gap: 12px;
 }
 .logo {
-  width: 60px;
-  height: 60px;
-  aspect-ratio: 1;
-  border-radius: 50%;
+  width: auto;
+  height: 64px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -96,7 +94,7 @@
 @media (max-width: 767px) {
   .navLinks, .actions { display: none; }
   .container { padding: 8px 12px; }
-  .logo { width: 52px; height: 52px; }
+  .logo { height: 56px; }
   .brand { gap: 8px; }
   .menuToggle { display: flex; }
   .mobileMenuBackdrop {

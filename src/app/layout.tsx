@@ -12,10 +12,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "E-STORE HME FPTI UPI",
     description: "Pesan merchandise HME FPTI UPI.",
-    images: ["/logo-estore.png"],
+    images: ["/logo-estore-transparent.png"],
   },
   icons: {
-    icon: [{ url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" }],
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-estore-transparent.png", sizes: "819x1024", type: "image/png" },
+    ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
