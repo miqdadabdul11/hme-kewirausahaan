@@ -287,7 +287,7 @@ export default function AdminProductsPage() {
                   <div>
                     <label className={styles.formLabel}>Varian dan pilihan pembeli</label>
                     <p style={{ color: "var(--gray-500)", fontSize: "0.8rem", margin: "4px 0 0" }}>
-                      Contoh nama: Ukuran M · Model Oversize. Pembeli memilih salah satu varian ini.
+                      Buat satu pilihan per ukuran, misalnya Ukuran S hingga XXL. Model yang sama untuk semua ukuran tidak perlu ditambahkan.
                     </p>
                   </div>
                   <button
@@ -317,7 +317,7 @@ export default function AdminProductsPage() {
                           className={styles.formInput}
                           value={variant.sku}
                           onChange={(event) => handleVariantChange(index, "sku", event.target.value)}
-                          placeholder="TSHIRT-M-OVR"
+                          placeholder="Kosongkan jika tidak dipakai"
                         />
                       </div>
                     </div>

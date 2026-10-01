@@ -114,14 +114,15 @@ export async function POST(request: Request) {
     maximumQuantity,
     stockQuantity: totalStock,
   };
+  const productId = typeof body.id === "string" ? body.id : null;
 
   try {
-    const savedProduct = await prisma.$transaction(async (transaction) => {
-      const product = typeof body.id === "string"
+    const savedProductId = await prisma.$transaction(async (transaction) => {
+      const product = productId
         ? await transaction.product.upsert({
-            where: { id: body.id },
+            where: { id: productId },
             update: productData,
-            create: { id: body.id, ...productData },
+            create: { id: productId, ...productData },
           })
         : await transaction.product.upsert({
             where: { slug: String(slug) },
@@ -130,58 +131,67 @@ export async function POST(request: Request) {
           });
 
       const retainedIds: string[] = [];
-      for (const variant of normalizedVariants) {
-        if (variant.id) {
-          const updated = await transaction.productVariant.updateMany({
-            where: { id: variant.id, productId: product.id },
-            data: {
-              name: variant.name,
-              sku: variant.sku,
-              price: variant.price,
-              stockQuantity: variant.stockQuantity,
-              status: "ACTIVE",
-            },
-          });
-          if (updated.count !== 1) {
-            throw new ProductSaveError("Salah satu varian sudah berubah atau tidak ditemukan. Muat ulang produk lalu coba lagi.");
-          }
-          retainedIds.push(variant.id);
-        } else {
-          const created = await transaction.productVariant.create({
-            data: {
-              productId: product.id,
-              name: variant.name,
-              sku: variant.sku,
-              price: variant.price,
-              stockQuantity: variant.stockQuantity,
-              status: "ACTIVE",
-            },
-          });
-          retainedIds.push(created.id);
+      const existingVariants = normalizedVariants.filter((variant) => variant.id !== null);
+      const newVariants = normalizedVariants.filter((variant) => variant.id === null);
+
+      for (const variant of existingVariants) {
+        const updated = await transaction.productVariant.updateMany({
+          where: { id: variant.id!, productId: product.id },
+          data: {
+            name: variant.name,
+            sku: variant.sku,
+            price: variant.price,
+            stockQuantity: variant.stockQuantity,
+            status: ProductStatus.ACTIVE,
+          },
+        });
+        if (updated.count !== 1) {
+          throw new ProductSaveError("Salah satu varian sudah berubah atau tidak ditemukan. Muat ulang produk lalu coba lagi.");
         }
+        retainedIds.push(variant.id!);
       }
 
       await transaction.productVariant.deleteMany({
         where: { productId: product.id, id: { notIn: retainedIds } },
       });
 
-      await transaction.openOrderProduct.deleteMany({ where: { productId: product.id } });
       if (body.openOrderId) {
-        await transaction.openOrderProduct.create({
-          data: { productId: product.id, openOrderId: String(body.openOrderId) },
+        const openOrderId = String(body.openOrderId);
+        await transaction.openOrderProduct.deleteMany({
+          where: { productId: product.id, openOrderId: { not: openOrderId } },
+        });
+        await transaction.openOrderProduct.upsert({
+          where: { openOrderId_productId: { productId: product.id, openOrderId } },
+          update: {},
+          create: { productId: product.id, openOrderId },
+        });
+      } else {
+        await transaction.openOrderProduct.deleteMany({ where: { productId: product.id } });
+      }
+
+      if (newVariants.length > 0) {
+        await transaction.productVariant.createMany({
+          data: newVariants.map((variant) => ({
+            productId: product.id,
+            name: variant.name,
+            sku: variant.sku,
+            price: variant.price,
+            stockQuantity: variant.stockQuantity,
+            status: ProductStatus.ACTIVE,
+          })),
         });
       }
 
-      return transaction.product.findUniqueOrThrow({
-        where: { id: product.id },
-        include: { variants: true, openOrderProducts: true },
-      });
+      return product.id;
+    }, { maxWait: 10000, timeout: 15000 });
+    const savedProduct = await prisma.product.findUniqueOrThrow({
+      where: { id: savedProductId },
+      include: { variants: true, openOrderProducts: true },
     });
 
-    const { openOrderProducts, ...product } = savedProduct;
     return NextResponse.json({
       success: true,
-      product: { ...product, openOrderId: openOrderProducts[0]?.openOrderId ?? null },
+      product: { ...savedProduct, openOrderId: body.openOrderId ? String(body.openOrderId) : null },
     });
   } catch (error) {
     const requestId = crypto.randomUUID();
@@ -209,6 +219,11 @@ export async function POST(request: Request) {
         return NextResponse.json({
           error: `Database Vercel belum sesuai dengan versi aplikasi. Kode: ${requestId}.`,
         }, { status: 500 });
+      }
+      if (error.code === "P2028") {
+        return NextResponse.json({
+          error: `Penyimpanan produk terlalu lama. Coba lagi; bila berulang, kirim kode ${requestId} ke admin.`,
+        }, { status: 503 });
       }
     } else if (error instanceof ProductSaveError) {
       console.warn("Product save rejected because a submitted variant is stale.", { requestId });
