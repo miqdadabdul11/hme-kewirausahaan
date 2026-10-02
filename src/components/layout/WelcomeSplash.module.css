@@ -1,11 +1,17 @@
 .overlay {
+  --splash-bg-edge: #1F3A2B;
+  --splash-bg-center: #2A4D39;
+  --splash-logo-size: clamp(110px, 24vw, 136px);
+  --splash-subtitle: #B8C4BC;
+  --splash-progress-track: #3A5142;
+
   position: fixed;
   inset: 0;
   z-index: 1000;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--black-900);
+  background: radial-gradient(ellipse at center, var(--splash-bg-center), var(--splash-bg-edge) 75%);
   color: var(--white);
   opacity: 1;
   transition-property: opacity;
@@ -24,9 +30,9 @@
   min-width: 44px;
   min-height: 44px;
   padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(184, 196, 188, 0.4);
   border-radius: 8px;
-  background: var(--black-700);
+  background: var(--splash-bg-center);
   color: var(--white);
   font: inherit;
   font-size: 0.9rem;
@@ -38,6 +44,8 @@
 }
 
 .content {
+  position: relative;
+  isolation: isolate;
   display: flex;
   width: min(100% - 40px, 560px);
   flex-direction: column;
@@ -46,9 +54,28 @@
   cursor: default;
 }
 
+.content::before {
+  position: absolute;
+  top: calc(var(--splash-logo-size) / 2);
+  left: 50%;
+  z-index: -1;
+  width: calc(var(--splash-logo-size) * 1.5);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(220, 255, 230, 0.16) 0%,
+    rgba(108, 194, 74, 0.1) 50%,
+    transparent 100%
+  );
+  content: "";
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
 .logo {
-  width: clamp(110px, 24vw, 136px);
-  height: clamp(110px, 24vw, 136px);
+  width: var(--splash-logo-size);
+  height: var(--splash-logo-size);
   margin-bottom: 24px;
   object-fit: contain;
   animation: reveal 600ms ease-out both, glow 1800ms ease-in-out 600ms infinite alternate;
@@ -69,7 +96,7 @@
 
 .subtitle {
   margin: 12px 0 28px;
-  color: var(--gray-500);
+  color: var(--splash-subtitle);
   font-size: clamp(0.9rem, 2.5vw, 1rem);
   animation: reveal 600ms ease-out 1000ms both;
 }
@@ -79,7 +106,7 @@
   height: 4px;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--black-700);
+  background: var(--splash-progress-track);
   animation: reveal 400ms ease-out 1200ms both;
 }
 
