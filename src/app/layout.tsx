@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 
 export const metadata: Metadata = {
-  title: "⚡ E-STORE HME",
+  title: "E-STORE HME",
   description: "E-STORE HME FPTI UPI - platform pemesanan produk dan merchandise.",
   openGraph: {
     title: "E-STORE HME FPTI UPI",
