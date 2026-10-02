@@ -9,6 +9,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 96px;
   padding: 16px 20px;
   display: flex;
   align-items: center;
@@ -21,13 +22,15 @@
 }
 .logo {
   width: auto;
-  height: 64px;
+  height: 44px;
+  display: block;
   object-fit: contain;
   flex-shrink: 0;
 }
 .brandText {
   display: flex;
   flex-direction: column;
+  line-height: 1.15;
 }
 .title {
   font-family: var(--font-space);
@@ -93,8 +96,11 @@
 }
 @media (max-width: 767px) {
   .navLinks, .actions { display: none; }
-  .container { padding: 8px 12px; }
-  .logo { height: 56px; }
+  .container {
+    min-height: 72px;
+    padding: 8px 12px;
+  }
+  .logo { height: 39px; }
   .brand { gap: 8px; }
   .menuToggle { display: flex; }
   .mobileMenuBackdrop {

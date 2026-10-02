@@ -29,7 +29,7 @@ export const Navbar = ({ cartCount }: { cartCount?: number }) => {
     <header className={styles.navbar}>
       <div className={styles.container}>
         <Link href="/" className={styles.brand}>
-          <Image src="/logo-estore-transparent.png" alt="Logo E-STORE HME FPTI UPI" width={52} height={64} className={styles.logo} />
+          <Image src="/logo-estore-transparent-trimmed.png" alt="Logo E-STORE HME FPTI UPI" width={563} height={704} className={styles.logo} />
           <div className={styles.brandText}>
             <span className={styles.title}>E-STORE</span>
             <span className={styles.subtitle}>HME FPTI UPI</span>

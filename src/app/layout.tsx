@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "E-STORE HME FPTI UPI",
     description: "Pesan merchandise HME FPTI UPI.",
-    images: ["/logo-estore-transparent.png"],
+    images: ["/logo-estore-transparent-trimmed.png"],
   },
 };
 

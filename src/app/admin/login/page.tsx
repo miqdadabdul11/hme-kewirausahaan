@@ -46,14 +46,16 @@ export default function AdminLoginPage() {
     <div className={styles.loginContainer}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <Image
-            src="/logo-estore-transparent.png"
-            alt="Logo E-STORE HME FPTI UPI"
-            width={96}
-            height={120}
-            className={styles.logo}
-            unoptimized
-          />
+          <div className={styles.logoFrame}>
+            <Image
+              src="/logo-estore-transparent-trimmed.png"
+              alt="Logo E-STORE HME FPTI UPI"
+              width={563}
+              height={704}
+              className={styles.logo}
+              unoptimized
+            />
+          </div>
           <h1 className={`heading ${styles.title}`}>Portal Admin</h1>
           <p className={styles.subtitle}>Sistem Manajemen Kewirausahaan</p>
         </div>

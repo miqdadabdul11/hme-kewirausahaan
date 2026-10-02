@@ -79,7 +79,7 @@ export const AdminSidebar = ({ children }: { children: React.ReactNode }) => {
 
       <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ""} ${drawerOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.header}>
-          <Image src="/logo-estore-transparent.png" alt="Logo E-STORE HME FPTI UPI" width={42} height={52} className={styles.logo} />
+          <Image src="/logo-estore-transparent-trimmed.png" alt="Logo E-STORE HME FPTI UPI" width={563} height={704} className={styles.logo} />
           <div className={styles.brand}>
             <span className={styles.title} title="Admin E-STORE">Admin E-STORE</span>
           </div>
